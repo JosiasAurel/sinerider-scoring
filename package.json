@@ -21,8 +21,11 @@
   "homepage": "https://github.com/hackclub/sinerider#readme",
   "dependencies": {
     "airtable": "^0.11.6",
+    "cloudinary": "^1.35.0",
     "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
     "express": "^4.18.2",
+    "nanoid": "^4.0.1",
     "puppeteer": "^19.6.3",
     "puppeteer-video-recorder": "^1.0.5"
   }
