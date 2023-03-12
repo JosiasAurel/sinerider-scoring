@@ -42,42 +42,51 @@ app.post("/score", async (req, res) => {
   const videoName = `${nanoid(8)}.gif`;
   let solution;
   let videoDetails;
-  playLevel(level, videoName)
-    .then((result) => {
-      solution = {
-        T: result.T,
-        expression: result.expression,
-        charCount: getCharCount(result.expression),
-        playURL: level,
-        level: result.level,
-      };
+  playLevel(level, videoName).then((result) => {
+    solution = {
+      T: result.T,
+      expression: result.expression,
+      charCount: getCharCount(result.expression),
+      playURL: level,
+      level: result.level,
+    };
 
-      /*
-      const fileExistCheck = setInterval(() => {
-        try {
-          accessSync(videoName, constants.F_OK);
-          uploadVideo(videoName).then((result) => (videoDetails = result));
-          clearInterval(fileExistCheck);
-        } catch {}
-      }, 3000);
-      */
+    const fileExistCheck = setInterval(() => {
+      try {
+        accessSync(videoName, constants.F_OK);
+        uploadVideo(videoName)
+          .then((result) => (videoDetails = result))
+          .then(() => {
+            saveSolution(solution)
+              .then((data) =>
+                res.json({ success: true, id: data.id, ...solution })
+              )
+              .catch((err) => res.json({ success: false, reason: err }));
+          });
+        clearInterval(fileExistCheck);
+      } catch {}
+    }, 3000);
 
-      setTimeout(() => {
-        try {
-          accessSync(videoName, constants.F_OK);
-          uploadVideo(videoName).then(
-            (result) => (solution.gameplay = result.uri)
-          );
-          clearInterval(fileExistCheck);
-        } catch {}
-      }, 10000);
-      console.log("videoDetails: ", videoDetails);
-    })
-    .then(() => {
-      saveSolution(solution)
-        .then((data) => res.json({ success: true, id: data.id, ...solution }))
-        .catch((err) => res.json({ success: false, reason: err }));
-    });
+    /*
+    setTimeout(() => {
+      try {
+        accessSync(videoName, constants.F_OK);
+        uploadVideo(videoName)
+          .then((result) => (solution.gameplay = result.uri))
+          .then(() => {
+            saveSolution(solution)
+              .then((data) =>
+                res.json({ success: true, id: data.id, ...solution })
+              )
+              .catch((err) => res.json({ success: false, reason: err }));
+          });
+
+        // clearInterval(fileExistCheck);
+      } catch {}
+    }, 10000);
+    */
+    console.log("videoDetails: ", videoDetails);
+  });
 });
 
 app.listen(port, () =>
