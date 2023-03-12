@@ -55,7 +55,7 @@ app.post("/score", async (req, res) => {
       try {
         accessSync(videoName, constants.F_OK);
         uploadVideo(videoName)
-          .then((result) => (videoDetails = result))
+          .then((result) => (solution.gameplay = result.uri))
           .then(() => {
             saveSolution(solution)
               .then((data) =>
