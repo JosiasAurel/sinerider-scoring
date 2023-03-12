@@ -1,6 +1,13 @@
 import { base } from "./config.js";
 
-export function saveSolution({ expression, level, T, charCount, playURL }) {
+export function saveSolution({
+  expression,
+  level,
+  T,
+  charCount,
+  playURL,
+  gameplay,
+}) {
   return new Promise((resolve, reject) => {
     base("Leaderboard").create(
       [
@@ -11,6 +18,7 @@ export function saveSolution({ expression, level, T, charCount, playURL }) {
             T: parseFloat(T),
             playURL: playURL.split("?")[1],
             charCount,
+            gameplay,
           },
         },
       ],

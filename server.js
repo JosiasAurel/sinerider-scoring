@@ -65,7 +65,9 @@ app.post("/score", async (req, res) => {
       setTimeout(() => {
         try {
           accessSync(videoName, constants.F_OK);
-          uploadVideo(videoName).then((result) => (videoDetails = result));
+          uploadVideo(videoName).then(
+            (result) => (solution.gameplay = result.uri)
+          );
           clearInterval(fileExistCheck);
         } catch {}
       }, 10000);
