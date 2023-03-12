@@ -10,7 +10,7 @@ export function saveSolution({ expression, level, T, charCount, playURL }) {
             level,
             T: parseFloat(T),
             playURL: playURL.split("?")[1],
-            charCount
+            charCount,
           },
         },
       ],
@@ -22,8 +22,7 @@ export function saveSolution({ expression, level, T, charCount, playURL }) {
         resolve({ id: records[0].getId() });
       }
     );
-  }
-  );
+  });
 }
 
 export function getScoresByLevel(levelName) {
@@ -32,7 +31,10 @@ export function getScoresByLevel(levelName) {
     base("Leaderboard")
       .select({
         view: "Grid view",
-        sort: [{ field: "charCount", direction: "asc" }, { field: "T", direction: "asc" }]
+        sort: [
+          { field: "charCount", direction: "asc" },
+          { field: "T", direction: "asc" },
+        ],
       })
       .eachPage(
         (records, nextPage) => {
@@ -49,7 +51,7 @@ export function getScoresByLevel(levelName) {
                 expression,
                 T,
                 playURL,
-                charCount
+                charCount,
               });
             }
           });
@@ -70,7 +72,10 @@ export function getAllScores() {
     base("Leaderboard")
       .select({
         view: "Grid view",
-        sort: [{ field: "charCount", direction: "asc" }, { field: "T", direction: "asc" }]
+        sort: [
+          { field: "charCount", direction: "asc" },
+          { field: "T", direction: "asc" },
+        ],
       })
       .eachPage(
         (records, nextPage) => {
@@ -87,7 +92,7 @@ export function getAllScores() {
               T,
               playURL,
               charCount,
-              level
+              level,
             });
           });
           nextPage();

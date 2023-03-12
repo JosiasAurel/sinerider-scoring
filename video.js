@@ -1,16 +1,12 @@
 import _cloudinary from "cloudinary";
-import {
-  CLOUD_NAME,
-  CLOUDINARY_API_KEY,
-  CLOUDINARY_API_SECRET,
-} from "./config.js";
+import { CLOUD_NAME } from "./config.js";
 const cloudinary = _cloudinary.v2;
 
 // Configuration
 cloudinary.config({
   cloud_name: CLOUD_NAME,
-  api_key: CLOUDINARY_API_KEY,
-  api_secret: CLOUDINARY_API_SECRET,
+  api_key: process.env.CLOUDFLARE_API_KEY,
+  api_secret: process.env.CLOUDFLARE_API_SECRET,
 });
 
 export async function uploadVideo(filename) {
