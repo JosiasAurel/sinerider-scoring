@@ -39,7 +39,7 @@ app.post("/score", async (req, res) => {
   // level is a url to the body to the game from the user
   const { level } = req.body;
 
-  const videoName = `${nanoid(8)}.webm`;
+  const videoName = `${nanoid(8)}.gif`;
   let solution;
   let videoDetails;
   playLevel(level, videoName)
@@ -52,13 +52,23 @@ app.post("/score", async (req, res) => {
         level: result.level,
       };
 
+      /*
       const fileExistCheck = setInterval(() => {
         try {
           accessSync(videoName, constants.F_OK);
           uploadVideo(videoName).then((result) => (videoDetails = result));
           clearInterval(fileExistCheck);
         } catch {}
-      }, 1000);
+      }, 3000);
+      */
+
+      setTimeout(() => {
+        try {
+          accessSync(videoName, constants.F_OK);
+          uploadVideo(videoName).then((result) => (videoDetails = result));
+          clearInterval(fileExistCheck);
+        } catch {}
+      }, 10000);
       console.log("videoDetails: ", videoDetails);
     })
     .then(() => {
