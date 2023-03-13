@@ -55,7 +55,7 @@ app.post("/score", async (req, res) => {
       try {
         accessSync(videoName, constants.F_OK);
         uploadVideo(videoName)
-          .then((result) => (solution.gameplay = result.uri))
+          .then((result) => (solution.gameplay = result.uri ?? ""))
           .then(() => {
             saveSolution(solution)
               .then((data) =>
@@ -64,7 +64,7 @@ app.post("/score", async (req, res) => {
               .catch((err) => res.json({ success: false, reason: err }));
           });
         clearInterval(fileExistCheck);
-      } catch {}
+      } catch { }
     }, 3000);
 
     /*
