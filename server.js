@@ -39,7 +39,7 @@ app.post("/score", async (req, res) => {
   // level is a url to the body to the game from the user
   const { level } = req.body;
 
-  const videoName = `${nanoid(8)}.gif`;
+  const videoName = `${nanoid(8)}.webm`;
   let solution;
   let videoDetails;
   playLevel(level, videoName).then((result) => {

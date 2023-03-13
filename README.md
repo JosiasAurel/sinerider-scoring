@@ -21,6 +21,3 @@ It will return an object of the form
 
 - Send a GET request to `/level/<LEVEL_NAME>` (e.g `/level/HELLO_WORLD`) to get all scores for that specific level sorted by `charCount` and `T`.
 
-# TODO:
-
-- Generate a 16s GIF of the gameplay.
