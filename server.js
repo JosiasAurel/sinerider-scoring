@@ -4,7 +4,7 @@ import { getScoresByLevel, saveSolution, getAllScores } from "./airtable.js";
 import { playLevel, getCharCount } from "./main.js";
 import { nanoid } from "nanoid";
 import { uploadVideo } from "./video.js";
-import { accessSync, constants } from "fs";
+import { accessSync, constants, rmSync } from "fs";
 
 const app = express();
 
@@ -61,6 +61,9 @@ app.post("/score", async (req, res) => {
               .then((data) =>
                 res.json({ success: true, id: data.id, ...solution })
               )
+              .then(() => {
+                rmSync(videoName); // remove video after upload
+              })
               .catch((err) => res.json({ success: false, reason: err }));
           });
         clearInterval(fileExistCheck);
