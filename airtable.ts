@@ -7,7 +7,7 @@ export function saveSolution({
   charCount,
   playURL,
   gameplay,
-}) {
+}: Solution) {
   return new Promise((resolve, reject) => {
     base("Leaderboard").create(
       [
@@ -15,7 +15,7 @@ export function saveSolution({
           fields: {
             expression,
             level,
-            T: parseFloat(T),
+            T: parseFloat(T.toFixed(2)),
             playURL: playURL.split("?")[1],
             charCount,
             gameplay,
@@ -27,15 +27,15 @@ export function saveSolution({
           reject(error);
         }
 
-        resolve({ id: records[0].getId() });
+        records ? resolve({ id: records[0].getId() }) : console.error("Failed to write to airtable");
       }
     );
   });
 }
 
-export function getScoresByLevel(levelName) {
+export function getScoresByLevel(levelName: string) {
   return new Promise((resolve, reject) => {
-    const scores = [];
+    const scores: Partial<Solution>[] = [];
     base("Leaderboard")
       .select({
         view: "Grid view",
@@ -54,13 +54,15 @@ export function getScoresByLevel(levelName) {
               const T = record.get("T");
               const playURL = record.get("playURL");
               const charCount = record.get("charCount");
+              const gameplay = record.get("gameplay") ?? "";
 
               scores.push({
                 expression,
                 T,
                 playURL,
                 charCount,
-              });
+                gameplay,
+              } as Solution);
             }
           });
           nextPage();
@@ -76,7 +78,7 @@ export function getScoresByLevel(levelName) {
 
 export function getAllScores() {
   return new Promise((resolve, reject) => {
-    const scores = [];
+    const scores: Partial<Solution>[] = [];
     base("Leaderboard")
       .select({
         view: "Grid view",
@@ -101,11 +103,11 @@ export function getAllScores() {
               playURL,
               charCount,
               level,
-            });
+            } as Solution);
           });
           nextPage();
         },
-        (err) => {
+        (err: any) => {
           if (err) reject(err);
 
           resolve(scores);

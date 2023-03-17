@@ -28,7 +28,7 @@ export const playLevel = async (levelUrl: string, videoName: string) => {
   // will be better to page.waitForSelector before doing anything else
   await page.waitForSelector(clickToBeginSelector);
   const clickToBeginCTA = await page.$(clickToBeginSelector);
-  await clickToBeginCTA.click();
+  await clickToBeginCTA?.click();
 
   // start recording
   await recorder.start();
@@ -36,7 +36,7 @@ export const playLevel = async (levelUrl: string, videoName: string) => {
   // wait for selector here, too
   await page.waitForSelector(runButtonSelector);
   const runButton = await page.$(runButtonSelector);
-  await runButton.click();
+  await runButton?.click();
 
   // const victoryLabel = await page.$(victoryLabelSelector)
 
@@ -65,7 +65,7 @@ export const playLevel = async (levelUrl: string, videoName: string) => {
 
   await browser.close();
 
-  return { expression, T, level };
+  return { expression, T, level } as { expression: string, T: number, level: string };
 };
 
 // ignores whitespace in expression
