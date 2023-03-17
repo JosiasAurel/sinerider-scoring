@@ -10,7 +10,7 @@ Airtable.configure({
   apiKey: SINERIDER_AIRTABLE_API_KEY,
 });
 
-const base = Airtable.base(process.env.SINERIDER_AIRTABLE_BASE);
+const base = Airtable.base(process.env.SINERIDER_AIRTABLE_BASE as string);
 
 // cloudflare stuff
 export const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;

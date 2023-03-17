@@ -1,7 +1,7 @@
 import puppeteer from "puppeteer";
 import PuppeteerVideoRecorder from "puppeteer-video-recorder";
 
-export const playLevel = async (levelUrl, videoName) => {
+export const playLevel = async (levelUrl: string, videoName: string) => {
   // init page record
   const recorder = new PuppeteerVideoRecorder();
 
@@ -70,7 +70,7 @@ export const playLevel = async (levelUrl, videoName) => {
 
 // ignores whitespace in expression
 // probably makes more sense to count sin, cos as units of their own
-export function getCharCount(expression) {
+export function getCharCount(expression: string) {
   let count = 0;
   for (let char of expression) {
     if (char !== " ") count++;

@@ -9,11 +9,11 @@ const cloudinary = _cloudinary.v2;
 // Configuration
 cloudinary.config({
   cloud_name: CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  api_key: CLOUDINARY_API_KEY,
+  api_secret: CLOUDINARY_API_SECRET,
 });
 
-export async function uploadVideo(filename) {
+export async function uploadVideo(filename: string) {
   try {
     const uploadRes = await cloudinary.uploader.upload(`./${filename}`, {
       resource_type: "auto",
