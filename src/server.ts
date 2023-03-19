@@ -55,34 +55,40 @@ app.post("/score", async (req, res) => {
       charCount: getCharCount(result.expression),
       playURL: level,
       level: result.level,
-      gameplay: ""
+      gameplay: result.gameplay
     };
-
+    res.json(solution);
+    /*
+      
+    uploadVideo(videoName)
+      .then((result) => (solution.gameplay = result?.uri ?? ""))
+      .then(() => {
+        saveSolution(solution)
+          .then((data: any) => // string ? { id: string }
+            res.json({ success: true, id: data.id, ...solution })
+          )
+          .then(() => {
+            // rmSync(videoName); // remove video after upload
+          })
+          .catch((err) => res.json({ success: false, reason: err }));
+      });
+      */
+    /*
     const fileExistCheck = setInterval(() => {
       try {
         accessSync(videoName, constants.F_OK);
         watchFile(videoName, { bigint: false, persistent: true, interval: 1000 }, (curr, prev) => {
-          const diff = curr.mtimeMs - prev.mtimeMs;
-          if (diff / 1000 >= 2) {
-            uploadVideo(videoName)
-              .then((result) => (solution.gameplay = result?.uri ?? ""))
-              .then(() => {
-                saveSolution(solution)
-                  .then((data: any) => // string ? { id: string }
-                    res.json({ success: true, id: data.id, ...solution })
-                  )
-                  .then(() => {
-                    rmSync(videoName); // remove video after upload
-                  })
-                  .catch((err) => res.json({ success: false, reason: err }));
-              });
+          const diffSeconds = (curr.mtimeMs - prev.mtimeMs) / 1000;
+          if (diffSeconds >= 5) {
+            
           }
         });
 
         clearInterval(fileExistCheck);
       } catch { }
-    }, 3000);
+    }, 1000);
 
+*/
     /*
     setTimeout(() => {
       try {

@@ -16,3 +16,4 @@ declare interface VideoDetails {
 }
 
 declare module 'puppeteer-video-recorder'
+declare module 'puppeteer-mass-screenshots'
