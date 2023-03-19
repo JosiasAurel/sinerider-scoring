@@ -4,19 +4,26 @@ import PuppeteerMassScreenshots from 'puppeteer-mass-screenshots';
 import { uploadVideo } from "../src/video.js";
 
 export default class PuppeteerVideoRecorder {
-  constructor(filename) {
+  public filename: string;
+  public screenshots: any;
+  public fsHandler: FsHandler;
+  public page: any;
+  public outputFolder: string;
+
+  constructor(filename: string) {
     this.filename = filename
     this.screenshots = new PuppeteerMassScreenshots();
     this.fsHandler = new FsHandler();
+    this.outputFolder = "";
   }
 
-  async init(page, outputFolder) {
+  async init(page: any, outputFolder: string) {
     this.page = page;
     this.outputFolder = outputFolder;
     await this.fsHandler.init(outputFolder);
     const { imagesPath, imagesFilename, appendToFile } = this.fsHandler;
     await this.screenshots.init(page, imagesPath, {
-      afterWritingImageFile: (filename) => appendToFile(imagesFilename, `file '${filename}'\n`)
+      afterWritingImageFile: (filename: string) => appendToFile(imagesFilename, `file '${filename}'\n`)
     });
   }
 
@@ -47,7 +54,7 @@ export default class PuppeteerVideoRecorder {
     return new Promise((resolve, reject) => {
       const _ffmpegCommand = ffmpegCommand || this.defaultFFMpegCommand;
       exec(_ffmpegCommand, (error, stdout, stderr) => {
-        if (error) throw new Error(error);
+        if (error) throw new Error(error.message);
         if (stderr.includes("muxing overhead")) {
           uploadVideo(this.filename)
             .then(result => {
