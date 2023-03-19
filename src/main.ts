@@ -1,9 +1,9 @@
 import puppeteer from "puppeteer";
-import PuppeteerVideoRecorder from "puppeteer-video-recorder";
+import PuppeteerVideoRecorder from "../external/index.js";
 
 export const playLevel = async (levelUrl: string, videoName: string) => {
   // init page record
-  const recorder = new PuppeteerVideoRecorder();
+  const recorder = new PuppeteerVideoRecorder(videoName);
 
   const browser = await puppeteer.launch({
     headless: true,
@@ -44,7 +44,7 @@ export const playLevel = async (levelUrl: string, videoName: string) => {
   await page.waitForFunction("world.level.completed === true", { timeout: 0 });
 
   // stop video recording
-  await recorder.stop();
+  const gamplayVideoUri = await recorder.stop();
 
   // get results
   const expression = await page.evaluate(
@@ -65,7 +65,7 @@ export const playLevel = async (levelUrl: string, videoName: string) => {
 
   await browser.close();
 
-  return { expression, T, level } as { expression: string, T: number, level: string };
+  return { expression, T, level, gameplay: gamplayVideoUri } as { expression: string, T: number, level: string, gameplay: string };
 };
 
 // ignores whitespace in expression
