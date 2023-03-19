@@ -79,13 +79,42 @@ export function getCharCount(expression: string) {
   return count;
 }
 
-/*
-playLevel(testingLevel2)
-  .then(result => {
-    const charCount = getCharCount(result.expression);
+async function generateLevel() {
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
+  const page = await browser.newPage();
 
-    console.table(result);
-    console.log("Char count = ", charCount);
-  })
+  await page.setViewport({ width: 1280, height: 720 });
 
-*/
+  // selectors
+  const clickToBeginSelector = "#loading-string"; // will have to wait until page is fully loaded before clicking
+  const runButtonSelector = "#run-button";
+  // const victoryLabelSelector = '#victory-label'
+
+  const gameUrl = "https://sinerider.hackclub.dev/";
+
+  // goto and wait until all assets are loaded
+  await page.goto(gameUrl, { waitUntil: "networkidle0" });
+
+  // will be better to page.waitForSelector before doing anything else
+  await page.waitForSelector(clickToBeginSelector);
+  const clickToBeginCTA = await page.$(clickToBeginSelector);
+  await clickToBeginCTA?.click();
+
+  // wait for selector here, too
+  await page.waitForSelector(runButtonSelector);
+  const runButton = await page.$(runButtonSelector);
+  await runButton?.click();
+
+  // const fnResult = await page.waitForFunction('window.world.level.completed')
+  await page.waitForFunction("setLevel('RANDOM')", { timeout: 0 });
+
+
+  const randomLevelData = await page.evaluate("world.level.serialize()");
+
+  await browser.close();
+
+}
+

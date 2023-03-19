@@ -111,6 +111,10 @@ app.post("/score", async (req, res) => {
   });
 });
 
+app.get("/daily", (_, res) => {
+  res.json({ url: "https://sinerider.hackclub.dev/#random" })
+});
+
 app.listen(port, () =>
   console.log(`Doing some black magic on port ${port}...`)
 );
