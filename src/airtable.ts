@@ -1,5 +1,38 @@
 import { base } from "./config.js";
 
+export function saveLevel(levelUri: string) {
+  return new Promise((resolve, reject) => {
+    base("Levels").create([{
+      fields: {
+        URL: levelUri,
+        played: false
+      }
+    }], (err, records) => {
+      if (err) reject(err);
+
+      records ? resolve({ id: records[0].getId() }) : console.error(err);
+    }
+    )
+  });
+}
+
+export function getUnplayedLevel() {
+  return new Promise((resolve, reject) => {
+    base("Levels").select({
+      view: "Grid view",
+      filterByFormula: "NOT({played})"
+    }).eachPage((records, _) => {
+      const randomLevel = records[Math.floor(Math.random() * records.length)];
+      console.log("gets here")
+      base("Levels").update(randomLevel.getId(), {
+        played: true
+      }).then(() => resolve(randomLevel.get("URL")))
+        .catch(err => console.log(err));
+
+    }, (err) => reject(err))
+  });
+}
+
 export function saveSolution({
   expression,
   level,

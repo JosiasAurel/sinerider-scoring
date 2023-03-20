@@ -79,7 +79,7 @@ export function getCharCount(expression: string) {
   return count;
 }
 
-async function generateLevel() {
+export async function generateLevel() {
   const browser = await puppeteer.launch({
     headless: true,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
@@ -93,7 +93,7 @@ async function generateLevel() {
   const runButtonSelector = "#run-button";
   // const victoryLabelSelector = '#victory-label'
 
-  const gameUrl = "https://sinerider.hackclub.dev/";
+  const gameUrl = "https://sinerider.hackclub.dev/#random";
 
   // goto and wait until all assets are loaded
   await page.goto(gameUrl, { waitUntil: "networkidle0" });
@@ -108,13 +108,14 @@ async function generateLevel() {
   const runButton = await page.$(runButtonSelector);
   await runButton?.click();
 
-  // const fnResult = await page.waitForFunction('window.world.level.completed')
-  await page.waitForFunction("setLevel('RANDOM')", { timeout: 0 });
+  // sleep for 3s
+  setTimeout(() => undefined, 3000);
 
-
-  const randomLevelData = await page.evaluate("world.level.serialize()");
+  const levelURl = await page.evaluate("location.href");
 
   await browser.close();
+
+  return levelURl as string;
 
 }
 

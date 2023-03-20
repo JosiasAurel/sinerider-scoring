@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
-import { getScoresByLevel, saveSolution, getAllScores } from "./airtable.js";
-import { playLevel, getCharCount } from "./main.js";
+import { getScoresByLevel, saveSolution, getAllScores, saveLevel, getUnplayedLevel } from "./airtable.js";
+import { playLevel, getCharCount, generateLevel } from "./main.js";
 import { nanoid } from "nanoid";
 import { uploadVideo } from "./video.js";
 import { accessSync, constants, rmSync, watchFile } from "fs";
@@ -112,7 +112,16 @@ app.post("/score", async (req, res) => {
 });
 
 app.get("/daily", (_, res) => {
-  res.json({ url: "https://sinerider.hackclub.dev/#random" })
+  getUnplayedLevel()
+    .then(level => res.json({ level, success: true }))
+    .catch((err) => res.json({ success: false }));
+});
+
+app.get("/generate", async (req, res) => {
+  const newLevel = await generateLevel();
+  saveLevel(newLevel)
+    .then(() => res.json({ success: true }))
+    .catch(() => res.json({ success: false }));
 });
 
 app.listen(port, () =>
