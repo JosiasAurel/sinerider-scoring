@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node ./build/src/server.js",
     "build": "tsc",
-    "generate": "node ./generate.js",
+    "generate": "node ./generate.js"
   },
   "repository": {
     "type": "git",
