@@ -2,39 +2,43 @@ import { FsHandler } from './handlers/index.js';
 import { exec } from 'child_process';
 import PuppeteerMassScreenshots from 'puppeteer-mass-screenshots';
 import { uploadVideo } from "../src/video.js";
+import puppeteer from "puppeteer";
 
 export default class PuppeteerVideoRecorder {
-  public filename: string;
   public screenshots: any;
   public fsHandler: FsHandler;
-  public page: any;
+  public page: puppeteer.Page;
   public outputFolder: string;
 
-  constructor(filename: string) {
-    this.filename = filename
+  constructor(folder: string, page:puppeteer.Page) {
     this.screenshots = new PuppeteerMassScreenshots();
-    this.fsHandler = new FsHandler();
-    this.outputFolder = "";
+    this.fsHandler = new FsHandler(folder);
+    this.outputFolder = folder;
+    this.page = page
   }
 
-  async init(page: any, outputFolder: string) {
-    this.page = page;
-    this.outputFolder = outputFolder;
-    await this.fsHandler.init(outputFolder);
+  async init() {
+    await this.fsHandler.init();
     const { imagesPath, imagesFilename, appendToFile } = this.fsHandler;
-    await this.screenshots.init(page, imagesPath, {
+    await this.screenshots.init(this.page, imagesPath, {
       afterWritingImageFile: (filename: string) => appendToFile(imagesFilename, `file '${filename}'\n`)
     });
+    return this
   }
 
-  start(options = {}) {
+  start(options = {
+    maxWidth: 512,
+    maxHeight: 348,
+    quality: 70,
+    everyNthFrame: 1
+  }) {
     return this.screenshots.start(options);
   }
 
   async stop() {
     await this.screenshots.stop();
-    let gameplayVideoUri = await this.createVideo();
-    console.log(`GOTCHA MY BOY -> ${gameplayVideoUri}`);
+    let gameplayVideoUri = await this.createVideo(this.fsHandler.getVideoFileName());
+    console.log(`Gameplay video uri: ${gameplayVideoUri}`);
     return gameplayVideoUri;
   }
 
@@ -45,20 +49,22 @@ export default class PuppeteerVideoRecorder {
       '-f concat',
       '-safe 0',
       `-i ${imagesFilename}`,
-      '-framerate 60',
+      '-framerate 15',
+      '-hide_banner',
       videoFilename
     ].join(' ');
   }
 
-  createVideo(ffmpegCommand = '') {
+  createVideo(videoFilePath: string, ffmpegCommand = '') {
     return new Promise((resolve, reject) => {
       const _ffmpegCommand = ffmpegCommand || this.defaultFFMpegCommand;
+      console.log("Executing ffmpeg command: " + _ffmpegCommand)
       exec(_ffmpegCommand, (error, stdout, stderr) => {
         if (error) throw new Error(error.message);
         if (stderr.includes("muxing overhead")) {
-          uploadVideo(this.filename)
+          uploadVideo(this.fsHandler.getVideoFileName())
             .then(result => {
-              console.log("GOTCHA FIRST MY BOY -> ", result?.uri);
+              console.log("Uploaded video result: ", result?.uri);
               resolve(result?.uri);
             })
             .catch(err => reject(err));

@@ -1,9 +1,14 @@
-import puppeteer from "puppeteer";
+import puppeteer, { TimeoutError } from "puppeteer";
 import PuppeteerVideoRecorder from "../external/index.js";
 
-export const playLevel = async (levelUrl: string, videoName: string) => {
-  // init page record
-  const recorder = new PuppeteerVideoRecorder(videoName);
+export const playLevel = async (rawLevelUrl: string, videoName: string, folder: string) => {
+  const startTime = Date.now()  
+  const tickRate = 1000
+  const drawModulo = 1
+  const defaultTickRate = 30
+
+  const levelUrl = `${rawLevelUrl}&ticksPerSecond=${tickRate}&drawModulo=${drawModulo}`
+  console.log(`levelUrl: ${levelUrl}`)
 
   console.log("Launching puppeteer")
   const browser = await puppeteer.launch({
@@ -14,13 +19,7 @@ export const playLevel = async (levelUrl: string, videoName: string) => {
   const page = await browser.newPage();
 
   console.log("Setting viewport")
-  await page.setViewport({ width: 1280, height: 720 });
-
-  console.log("Init page recorder")
-
-  // init page recorder with page
-  recorder.init(page, "./");
-  recorder.fsHandler.videoFilename = videoName;
+  await page.setViewport({ width: 512, height: 348 });
 
   // selectors
   const clickToBeginSelector = "#loading-string"; // will have to wait until page is fully loaded before clicking
@@ -42,21 +41,61 @@ export const playLevel = async (levelUrl: string, videoName: string) => {
 
   await clickToBeginCTA?.click();
 
-  console.log("Starting recording...")
-
-  // start recording
-  await recorder.start();
-
   // wait for selector here, too
   await page.waitForSelector(runButtonSelector);
   const runButton = await page.$(runButtonSelector);
+
+  // Wait 250ms
+  console.log("Waiting 250ms")
+  await new Promise(f => setTimeout(f, 250))
+  console.log("Continuing...")
+
+  // init page recorder with page
+  console.log("Init page recorder")
+  const recorder = await new PuppeteerVideoRecorder(folder, page).init()
+
+  // start recording
+  console.log("Starting recording...")
+  await recorder.start();
+
+  const runStartTime = Date.now()
   await runButton?.click();
 
   // const victoryLabel = await page.$(victoryLabelSelector)
 
   // const fnResult = await page.waitForFunction('window.world.level.completed')
-  await page.waitForFunction("world.level.completed === true", { timeout: 0 });
+  try {
+    // Adjust our timeout based on the expected time we take given the fps we use
+    // 30 seconds is the normal amount of time we want to timeout w/
+    // 30 hz is the normal game tick rate
+    // thus, the adjusted time (in ms) is 30 sec * defaultTickRate / tickRate * 1000 ms/sec
+    const expectedTimeoutMs = 30.0 * (defaultTickRate / tickRate) * 1000.0
 
+    // We will allow 5% extra time to account for anomalies
+    const paddedTimeoutMs = expectedTimeoutMs * 1.05
+
+    console.log(`Note: We will wait ${paddedTimeoutMs} ms (adjusted from 15000 due to tickrate: ${tickRate})`)
+
+    await page.waitForFunction("world.level.completed === true", { timeout: paddedTimeoutMs });
+
+    const elapsedRunTimeMs = Date.now() - runStartTime
+    console.log(`Had to wait ${elapsedRunTimeMs}ms`)
+
+  } catch (e) {
+    if (e instanceof TimeoutError) {
+      console.log("Recording timed out!")
+      const funnyMsg = "Rut roh!"
+      return { message: `${funnyMsg}  Solution not reached within 15 seconds!` }
+    }
+  }
+
+  // To avoid chopping the end of the video prematurely, we will stop the video 1 second later, adjusted
+  // for our tick rate time scaling
+  const tailWaitTimeMs = 1 * (defaultTickRate / tickRate) * 1000.0
+  console.log(`Waiting ${tailWaitTimeMs}ms`)
+  await new Promise(f => setTimeout(f, tailWaitTimeMs))
+  console.log("Continuing...")
+  
   // stop video recording
   const gamplayVideoUri = await recorder.stop();
 
@@ -89,15 +128,23 @@ export const playLevel = async (levelUrl: string, videoName: string) => {
 
   await browser.close();
 
-  const ret = { expression, T, level, gameplay: gamplayVideoUri } as { expression: string, T: number, level: string, gameplay: string };
-  console.log(ret);
+  console.log("Total runtime: " + ((Date.now() - startTime) / 1000) + " seconds")
 
-  return ret;
+  const cnt = getCharCount(expression as string);
+
+  return {
+    T: T,
+    expression: expression,
+    charCount: cnt,
+    playURL: level,
+    level: level,
+    gameplay: gamplayVideoUri
+  };
 };
 
 // ignores whitespace in expression
 // probably makes more sense to count sin, cos as units of their own
-export function getCharCount(expression: string) {
+export function getCharCount(expression: string) : number {
   let count = 0;
   for (let char of expression) {
     if (char !== " ") count++;
