@@ -58,8 +58,8 @@ app.post("/score", async (req, res) => {
   const tempDir = os.tmpdir()
   const uuid = uuidv4()
   const fullDir = tempDir.endsWith("/") ? tempDir + uuid : tempDir + "/" + uuid
-  console.log(`Making directory: ${tempDir}`)
-  fs.mkdtemp(tempDir, (err, folder) => {
+  console.log(`Making directory: ${fullDir}`)
+  fs.mkdtemp(fullDir, (err, folder) => {
     if (err) throw err;
     console.log(`Actual temp directory: ${folder}`)    
 
