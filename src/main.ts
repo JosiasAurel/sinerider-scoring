@@ -74,7 +74,7 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
     // We will allow 5% extra time to account for anomalies
     const paddedTimeoutMs = expectedTimeoutMs * 1.05
 
-    console.log(`Note: We will wait ${paddedTimeoutMs} ms (adjusted from 15000 due to tickrate: ${tickRate})`)
+    console.log(`Note: We will wait ${paddedTimeoutMs} ms (adjusted from 30000 due to tickrate: ${tickRate})`)
 
     await page.waitForFunction("world.level.completed === true", { timeout: paddedTimeoutMs });
 
@@ -85,7 +85,7 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
     if (e instanceof TimeoutError) {
       console.log("Recording timed out!")
       const funnyMsg = "Rut roh!"
-      return { message: `${funnyMsg}  Solution not reached within 15 seconds!` }
+      return { message: `${funnyMsg}  Solution not reached within 30 seconds!` }
     }
   }
 

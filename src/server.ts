@@ -55,9 +55,13 @@ app.post("/score", async (req, res) => {
   let solution: Solution;
   console.log("Starting playLevel...")
   
-  fs.mkdtemp(os.tmpdir(), (err, folder) => {
+  const tempDir = os.tmpdir()
+  const uuid = uuidv4()
+  const fullDir = tempDir.endsWith("/") ? tempDir + uuid : tempDir + "/" + uuid
+  console.log(`Making directory: ${tempDir}`)
+  fs.mkdtemp(tempDir, (err, folder) => {
     if (err) throw err;
-    console.log(folder);
+    console.log(`Actual temp directory: ${folder}`)    
 
     playLevel(level, videoName, folder).then((result) => {
       res.json(result);
