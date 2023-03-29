@@ -41,9 +41,16 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
 
   await clickToBeginCTA?.click();
 
+  console.log("We clicked, and clickToBeginCTA = " + clickToBeginCTA)
+
   // wait for selector here, too
   await page.waitForSelector(runButtonSelector);
+
+  console.log("We waited for the run button selector")
+
   const runButton = await page.$(runButtonSelector);
+
+  console.log("We got the run button!")
 
   // Wait 250ms
   console.log("Waiting 250ms")
