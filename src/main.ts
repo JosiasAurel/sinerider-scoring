@@ -119,7 +119,7 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
   console.log("Grabbing score...")
 
   const T = await page.evaluate(
-    "parseFloat(world.level.ui.completionTime.innerText)"
+    'parseFloat(document.getElementById("completion-time").innerText)'
   );
 
   console.log("Grabbing level name...")
