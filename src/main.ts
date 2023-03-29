@@ -12,7 +12,7 @@ let cache: { [url: string]: CacheEntry } = {};
 
 export const playLevel = async (rawLevelUrl: string, videoName: string, folder: string) => {
   const startTime = Date.now()  
-  const tickRate = 1000
+  const tickRate = 90
   const drawModulo = 1
   const defaultTickRate = 30
 
@@ -125,14 +125,6 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
   console.log("Grabbing level name...")
 
   const level = await page.evaluate("world.level.name");
-
-  // console.log(expression, T);
-
-  /*
-  await page.screenshot({
-    path: "finalGame.png"
-  })
-  */
 
   console.log("Closing browser...")
 
