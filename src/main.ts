@@ -18,12 +18,20 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
   console.log("Loading page...")
   const page = await browser.newPage();
 
+  page
+  .on('console', message =>
+    console.log(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
+  .on('pageerror', ({ message }) => console.log(message))
+  .on('response', response =>
+    console.log(`${response.status()} ${response.url()}`))
+  .on('requestfailed', request =>
+    console.log(`${request.failure().errorText} ${request.url()}`))
+
   console.log("Setting viewport")
   await page.setViewport({ width: 512, height: 348 });
 
   // selectors
   const clickToBeginSelector = "#loading-string"; // will have to wait until page is fully loaded before clicking
-  const runButtonSelector = "#run-button";
   // const victoryLabelSelector = '#victory-label'
 
   console.log("Loading page and waiting for all assets")
@@ -41,17 +49,6 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
 
   await clickToBeginCTA?.click();
 
-  console.log("We clicked, and clickToBeginCTA = " + clickToBeginCTA)
-
-  // wait for selector here, too
-  await page.waitForSelector(runButtonSelector);
-
-  console.log("We waited for the run button selector")
-
-  const runButton = await page.$(runButtonSelector);
-
-  console.log("We got the run button!")
-
   // Wait 250ms
   console.log("Waiting 250ms")
   await new Promise(f => setTimeout(f, 250))
@@ -66,7 +63,7 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
   await recorder.start();
 
   const runStartTime = Date.now()
-  await runButton?.click();
+  await page.evaluate('onClickRunButton (null)');
 
   // const victoryLabel = await page.$(victoryLabelSelector)
 
@@ -79,11 +76,11 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
     const expectedTimeoutMs = 30.0 * (defaultTickRate / tickRate) * 1000.0
 
     // We will allow 5% extra time to account for anomalies
-    const paddedTimeoutMs = expectedTimeoutMs * 1.05
+    const paddedTimeoutMs = expectedTimeoutMs * 5
 
     console.log(`Note: We will wait ${paddedTimeoutMs} ms (adjusted from 30000 due to tickrate: ${tickRate})`)
 
-    await page.waitForFunction("world.level.completed === true", { timeout: paddedTimeoutMs });
+    await page.waitForFunction('document.getElementById("completion-time").value != ""');
 
     const elapsedRunTimeMs = Date.now() - runStartTime
     console.log(`Had to wait ${elapsedRunTimeMs}ms`)
