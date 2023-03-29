@@ -76,7 +76,7 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
     const expectedTimeoutMs = 30.0 * (defaultTickRate / tickRate) * 1000.0
 
     // We will allow 5% extra time to account for anomalies
-    const paddedTimeoutMs = expectedTimeoutMs * 5
+    const paddedTimeoutMs = expectedTimeoutMs * 1.5
 
     console.log(`Note: We will wait ${paddedTimeoutMs} ms (adjusted from 30000 due to tickrate: ${tickRate})`)
 
