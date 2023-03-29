@@ -6,6 +6,10 @@ import { nanoid } from "nanoid";
 import { uploadVideo } from "./video.js";
 import { accessSync, constants, rmSync, watchFile } from "fs";
 import { Response } from "express-serve-static-core";
+import fs from 'fs'
+import path from 'path'
+import os from 'os'
+import {v4 as uuidv4} from 'uuid';
 
 const app = express();
 
@@ -49,23 +53,26 @@ app.post("/score", async (req, res) => {
   }
 
   let solution: Solution;
-  let videoDetails: VideoDetails;
   console.log("Starting playLevel...")
-  playLevel(level, videoName).then((result) => {
-    solution = {
-      T: result.T,
-      expression: result.expression,
-      charCount: getCharCount(result.expression),
-      playURL: level,
-      level: result.level,
-      gameplay: result.gameplay
-    };
-    res.json(solution);
+  
+  const tempDir = os.tmpdir()
+  const uuid = uuidv4()
+  const fullDir = tempDir.endsWith("/") ? tempDir + uuid : tempDir + "/" + uuid
+  console.log(`Making directory: ${fullDir}`)
+  fs.mkdtemp(fullDir, (err, folder) => {
+    if (err) throw err;
+    console.log(`Actual temp directory: ${folder}`)    
 
-    //finishWork(videoName, res, solution);
+    playLevel(level, videoName, folder).then((result) => {
+      res.json(result);
+      //finishWork(videoName, res, solution);    
+    });
     
-    console.log("videoDetails: ", videoDetails);
+    // Clean up afterwards
+    console.log("Attempting to clean up folder: " + folder)
+    fs.rmSync(folder, { recursive: true, force: true });
   });
+
 });
 
 app.get("/daily", (_, res) => {
@@ -86,9 +93,8 @@ app.listen(port, () =>
 );
 
 
-
-
-function finishWork(videoName: string, res: Response<any, Record<string, any>, number>, solution: Solution) {
+function finishWork(res: Response<any, Record<string, any>, number>, solution: Solution) {
+  const videoName = "PLEASE_FIX_ME";
   uploadVideo(videoName)
     .then((result) => (solution.gameplay = result?.uri ?? ""))
     .then(() => {

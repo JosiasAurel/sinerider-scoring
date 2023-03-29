@@ -15,7 +15,7 @@ cloudinary.config({
 
 export async function uploadVideo(filename: string) {
   try {
-    const uploadRes = await cloudinary.uploader.upload(`./${filename}`, {
+    const uploadRes = await cloudinary.uploader.upload(`${filename}`, {
       resource_type: "auto",
     });
 

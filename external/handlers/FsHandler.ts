@@ -9,22 +9,17 @@ export default class FsHandler {
   public imagesPath: string;
   public imagesFilename: string;
 
-  constructor() {
-    this.videoFilename = "";
-    this.outputFolder = "";
-    this.imagesPath = "";
-    this.imagesFilename = "";
-  }
-
-  async init(outputFolder: string) {
+  constructor(outputFolder: string) {
     this.outputFolder = outputFolder;
     this.videoFilename = join(this.outputFolder, Date.now() + '.webm');
     this.imagesPath = join(this.outputFolder, 'images');
     this.imagesFilename = join(this.outputFolder, 'images.txt');
+  }
+
+  async init() {
     await this.verifyPathExists(this.outputFolder);
     await this.verifyPathExists(this.imagesPath);
     await this.createEmptyFile(this.imagesFilename);
-    await this.clearImagesInPath(this.imagesPath);
   }
 
   createEmptyFile(filename: string) {
@@ -44,14 +39,8 @@ export default class FsHandler {
     return appendFile(filename, data);
   }
 
-  async clearImagesInPath(imagesPath: string) {
-    const files = await readdir(imagesPath);
-    console.log(`Removing files in ${imagesPath}`);
-    for (const file of files) {
-      const filename = join(imagesPath, file);
-      //console.log(`Removing file ${filename}`);
-      await unlink(filename);
-    }
+  getVideoFileName() : string {
+    return this.videoFilename;
   }
 }
 
