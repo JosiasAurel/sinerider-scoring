@@ -80,7 +80,7 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
 
     console.log(`Note: We will wait ${paddedTimeoutMs} ms (adjusted from 30000 due to tickrate: ${tickRate})`)
 
-    await page.waitForFunction("world.level.completed === true", { timeout: paddedTimeoutMs });
+    await page.waitForFunction('document.getElementById("completion-time").value != ""');
 
     const elapsedRunTimeMs = Date.now() - runStartTime
     console.log(`Had to wait ${elapsedRunTimeMs}ms`)
