@@ -1,5 +1,14 @@
-import puppeteer, { TimeoutError } from "puppeteer";
+import puppeteer, { Page, TimeoutError } from "puppeteer";
 import PuppeteerVideoRecorder from "../external/index.js";
+
+interface CacheEntry {
+  status:number
+  headers: Record<string, string>,
+  body: Buffer,
+  expires: number
+}
+// On top of your code
+let cache: { [url: string]: CacheEntry } = {};
 
 export const playLevel = async (rawLevelUrl: string, videoName: string, folder: string) => {
   const startTime = Date.now()  
@@ -18,14 +27,10 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
   console.log("Loading page...")
   const page = await browser.newPage();
 
-  page
-  .on('console', message =>
-    console.log(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
-  .on('pageerror', ({ message }) => console.log(message))
-  .on('response', response =>
-    console.log(`${response.status()} ${response.url()}`))
-  .on('requestfailed', request =>
-    console.log(`${request.failure().errorText} ${request.url()}`))
+  await page.setRequestInterception(true);
+
+  console.log("Registering page hooks")
+  setupPageHooks(page)
 
   console.log("Setting viewport")
   await page.setViewport({ width: 512, height: 348 });
@@ -76,7 +81,7 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
     const expectedTimeoutMs = 30.0 * (defaultTickRate / tickRate) * 1000.0
 
     // We will allow 5% extra time to account for anomalies
-    const paddedTimeoutMs = expectedTimeoutMs * 5
+    const paddedTimeoutMs = expectedTimeoutMs * 1.05
 
     console.log(`Note: We will wait ${paddedTimeoutMs} ms (adjusted from 30000 due to tickrate: ${tickRate})`)
 
@@ -145,6 +150,55 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
     level: level,
     gameplay: gamplayVideoUri
   };
+
+  function setupPageHooks(page : Page) {
+    page.on('request', async (request) => {
+      const url = request.url();
+      if (cache[url] /*&& cache[url].expires > Date.now()*/) {
+        console.log("using cache for url: " + url)
+        await request.respond(cache[url]);
+        return;
+      }
+      request.continue();
+    });
+
+    page.on('response', async (response) => {
+      const url = response.url();
+      const headers = response.headers();
+      const cacheControl = headers['cache-control'] || '';
+      const maxAgeMatch = cacheControl.match(/max-age=(\d+)/);
+      const maxAge = maxAgeMatch && maxAgeMatch.length > 1 ? parseInt(maxAgeMatch[1], 10) : 0;
+      if (true || maxAge) { // NOTE - forcing caching
+        if (cache[url] /*|| cache[url].expires > Date.now()*/) return;
+
+        let buffer;
+        try {
+          buffer = await response.buffer();
+        } catch (error) {
+          // some responses do not contain buffer and do not need to be catched
+          return;
+        }
+
+        console.log("caching url: " + url)
+        cache[url] = {
+          status: response.status(),
+          headers: response.headers(),
+          body: buffer,
+          expires: Date.now() + (maxAge * 1000),
+        };
+      }
+    });
+
+    page
+      .on('console', message =>
+        console.log(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
+      .on('pageerror', ({ message }) => console.log(message))
+      .on('response', response =>
+        console.log(`${response.status()} ${response.url()}`))
+      .on('requestfailed', request =>
+        console.log(`${request.failure().errorText} ${request.url()}`))
+
+  }
 };
 
 // ignores whitespace in expression
