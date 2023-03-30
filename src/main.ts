@@ -13,7 +13,7 @@ let cache: { [url: string]: CacheEntry } = {};
 export const playLevel = async (rawLevelUrl: string, videoName: string, folder: string) => {
   const startTime = Date.now()  
   const tickRate = 249
-  const drawModulo = 1
+  const drawModulo = 2
   const defaultTickRate = 30
 
   const levelUrl = `${rawLevelUrl}&ticksPerSecond=${tickRate}&drawModulo=${drawModulo}`
@@ -33,7 +33,7 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
   setupPageHooks(page)
 
   console.log("Setting viewport")
-  await page.setViewport({ width: 512, height: 348 });
+  await page.setViewport({ width: 1, height: 1 });
 
   // selectors
   const clickToBeginSelector = "#loading-string"; // will have to wait until page is fully loaded before clicking
@@ -54,7 +54,9 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
 
   await clickToBeginCTA?.click();
 
-  const wait = 5000
+  await page.setViewport({ width: 512, height: 348 });
+
+  const wait = 2000
   console.log(`Waiting ${wait}ms`)
   await new Promise(f => setTimeout(f, wait))
   console.log("Continuing...")
@@ -80,8 +82,8 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
     // thus, the adjusted time (in ms) is 30 sec * defaultTickRate / tickRate * 1000 ms/sec
     const expectedTimeoutMs = 30.0 * (defaultTickRate / tickRate) * 1000.0
 
-    // We will allow 5% extra time to account for anomalies
-    const paddedTimeoutMs = expectedTimeoutMs * 1.05
+    // We will allow 10% extra time to account for anomalies
+    const paddedTimeoutMs = expectedTimeoutMs * 1.1
 
     console.log(`Note: We will wait ${paddedTimeoutMs} ms (adjusted from 30000 due to tickrate: ${tickRate})`)
 
@@ -101,7 +103,7 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
 
   // To avoid chopping the end of the video prematurely, we will stop the video 1 second later, adjusted
   // for our tick rate time scaling
-  const tailWaitTimeMs = 1.0 * (defaultTickRate / tickRate) * 1000.0
+  const tailWaitTimeMs = 1.5 * (defaultTickRate / tickRate) * 1000.0
   console.log(`Waiting ${tailWaitTimeMs}ms`)
   await new Promise(f => setTimeout(f, tailWaitTimeMs))
   console.log("Continuing...")
