@@ -50,11 +50,12 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
   await page.waitForSelector(clickToBeginSelector);
   const clickToBeginCTA = await page.$(clickToBeginSelector);
 
+  console.log("Increasing viewport size")
+  await page.setViewport({ width: 512, height: 348 });
+
   console.log("Issuing click to start")
 
   await clickToBeginCTA?.click();
-
-  await page.setViewport({ width: 512, height: 348 });
 
   const wait = 2000
   console.log(`Waiting ${wait}ms`)
