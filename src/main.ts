@@ -22,7 +22,12 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
   console.log("Launching puppeteer")
   const browser = await puppeteer.launch({
     headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    ignoreDefaultArgs: [
+      "--mute-audio",
+    ],
+    args: [
+      "--no-sandbox", "--disable-setuid-sandbox", "--autoplay-policy=no-user-gesture-required",
+    ]
   });
   console.log("Loading page...")
   const page = await browser.newPage();
