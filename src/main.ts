@@ -54,9 +54,9 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
 
   await clickToBeginCTA?.click();
 
-  // Wait 250ms
-  console.log("Waiting 250ms")
-  await new Promise(f => setTimeout(f, 250))
+  const wait = 5000
+  console.log(`Waiting ${wait}ms`)
+  await new Promise(f => setTimeout(f, wait))
   console.log("Continuing...")
 
   // init page recorder with page
