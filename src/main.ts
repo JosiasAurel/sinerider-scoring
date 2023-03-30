@@ -101,7 +101,7 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
 
   // To avoid chopping the end of the video prematurely, we will stop the video 1 second later, adjusted
   // for our tick rate time scaling
-  const tailWaitTimeMs = 1 * (defaultTickRate / tickRate) * 1000.0
+  const tailWaitTimeMs = 1.0 * (defaultTickRate / tickRate) * 1000.0
   console.log(`Waiting ${tailWaitTimeMs}ms`)
   await new Promise(f => setTimeout(f, tailWaitTimeMs))
   console.log("Continuing...")
