@@ -38,7 +38,7 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
   setupPageHooks(page)
 
   console.log("Setting viewport")
-  await page.setViewport({ width: 1024, height: 768 });
+  await page.setViewport({ width: 512, height: 348 });
 
   // selectors
   const clickToBeginSelector = "#loading-string"; // will have to wait until page is fully loaded before clicking
