@@ -148,7 +148,7 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
       const url = request.url();
 
       if (url.endsWith(".mp3")) {
-        request.failure();
+        await request.respond(cache["fakemp3"])
         return;
       }
 
@@ -178,12 +178,17 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
         }
 
         console.log("caching url: " + url)
-        cache[url] = {
+        const resp = {
           status: response.status(),
           headers: response.headers(),
           body: buffer,
           expires: Date.now() + (maxAge * 1000),
         };
+        cache[url] = resp
+
+        if (url.endsWith(".mp3") && !cache["fakemp3"]) {
+          cache["fakemp3"] = resp
+        }
       }
     });
 
