@@ -152,7 +152,7 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
     page.on('request', async (request) => {
       const url = request.url();
 
-      if (url.endsWith(".mp3")) {
+      if (url.endsWith(".mp3") && cache["fakemp3"]) {
         await request.respond(cache["fakemp3"])
         return;
       }
