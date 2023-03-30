@@ -47,13 +47,17 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
   console.log("Loading page and waiting for all assets")
 
   // goto and wait until all assets are loaded
-  await page.goto(levelUrl, { waitUntil: "networkidle0" });
+  await page.goto(levelUrl, { waitUntil: "networkidle0" })
 
   console.log("Waiting for the click to begin selector...")
 
   // will be better to page.waitForSelector before doing anything else
   await page.waitForSelector(clickToBeginSelector);
-  const clickToBeginCTA = await page.$(clickToBeginSelector);
+
+  const elapsedPageLoadTimeMs = Date.now() - startTime;
+  console.log(`Page took ${elapsedPageLoadTimeMs}ms to load`)
+
+  const clickToBeginCTA = await page.$(clickToBeginSelector)
 
   console.log("Issuing click to start")
 
@@ -79,19 +83,18 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
 
   // const fnResult = await page.waitForFunction('window.world.level.completed')
   try {
-    // Adjust our timeout based on the expected time we take given the fps we use
+    // Adjust our expectations based target faster-than-realtime tickRate
     // 30 seconds is the normal amount of time we want to timeout w/
     // 30 hz is the normal game tick rate
     // thus, the adjusted time (in ms) is 30 sec * defaultTickRate / tickRate * 1000 ms/sec
-    const expectedTimeoutMs = 30.0 * (defaultTickRate / tickRate) * 1000.0
+    const expectedGameProcessingTimeMs = 30.0 * (defaultTickRate / tickRate) * 1000.0
 
     // We will allow 10% extra time to account for anomalies
-    const paddedTimeoutMs = expectedTimeoutMs * 1.1
+    const paddedGameProcessingTimeMs = expectedGameProcessingTimeMs * 1.1
 
-    console.log(`Note: We will wait ${paddedTimeoutMs} ms (adjusted from 30000 due to tickrate: ${tickRate})`)
+    console.log(`Note: We expect to wait ${paddedGameProcessingTimeMs}ms with a tick rate of ${tickRate} (default: ${defaultTickRate})`)
 
-    // await page.waitForFunction('document.getElementById("completion-time").value != ""');
-    await page.waitForFunction('document.getElementById("completion-time").innerText.length > 0')
+    await page.waitForFunction('document.getElementById("completion-time").innerText.length > 0', { timeout: paddedGameProcessingTimeMs })
 
     const elapsedRunTimeMs = Date.now() - runStartTime
     console.log(`Had to wait ${elapsedRunTimeMs}ms`)
@@ -106,7 +109,7 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
 
   // To avoid chopping the end of the video prematurely, we will stop the video 1 second later, adjusted
   // for our tick rate time scaling
-  const tailWaitTimeMs = 1.5 * (defaultTickRate / tickRate) * 1000.0
+  const tailWaitTimeMs = 2.5 * (defaultTickRate / tickRate) * 1000.0
   console.log(`Waiting ${tailWaitTimeMs}ms`)
   await new Promise(f => setTimeout(f, tailWaitTimeMs))
   console.log("Continuing...")
