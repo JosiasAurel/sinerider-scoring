@@ -13,7 +13,7 @@ let cache: { [url: string]: CacheEntry } = {};
 export const playLevel = async (rawLevelUrl: string, videoName: string, folder: string) => {
   const startTime = Date.now()  
   const tickRate = 249
-  const drawModulo = 2
+  const drawModulo = 1
   const defaultTickRate = 30
 
   const levelUrl = `${rawLevelUrl}&ticksPerSecond=${tickRate}&drawModulo=${drawModulo}`
@@ -38,7 +38,7 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
   setupPageHooks(page)
 
   console.log("Setting viewport")
-  await page.setViewport({ width: 512, height: 348 });
+  await page.setViewport({ width: 1024, height: 768 });
 
   // selectors
   const clickToBeginSelector = "#loading-string"; // will have to wait until page is fully loaded before clicking
@@ -59,7 +59,7 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
 
   await clickToBeginCTA?.click();
 
-  const wait = 2000
+  const wait = 3000
   console.log(`Waiting ${wait}ms`)
   await new Promise(f => setTimeout(f, wait))
   console.log("Continuing...")
