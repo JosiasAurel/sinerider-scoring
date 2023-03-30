@@ -1,10 +1,19 @@
-import puppeteer, { TimeoutError } from "puppeteer";
+import puppeteer, { Page, TimeoutError } from "puppeteer";
 import PuppeteerVideoRecorder from "../external/index.js";
+
+interface CacheEntry {
+  status:number
+  headers: Record<string, string>,
+  body: Buffer,
+  expires: number
+}
+// On top of your code
+let cache: { [url: string]: CacheEntry } = {};
 
 export const playLevel = async (rawLevelUrl: string, videoName: string, folder: string) => {
   const startTime = Date.now()  
-  const tickRate = 1000
-  const drawModulo = 1
+  const tickRate = 30 * 5
+  const drawModulo = 3
   const defaultTickRate = 30
 
   const levelUrl = `${rawLevelUrl}&ticksPerSecond=${tickRate}&drawModulo=${drawModulo}`
@@ -13,19 +22,20 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
   console.log("Launching puppeteer")
   const browser = await puppeteer.launch({
     headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    ignoreDefaultArgs: [
+      "--mute-audio",
+    ],
+    args: [
+      "--no-sandbox", "--disable-setuid-sandbox", "--autoplay-policy=no-user-gesture-required",
+    ]
   });
   console.log("Loading page...")
   const page = await browser.newPage();
 
-  page
-  .on('console', message =>
-    console.log(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
-  .on('pageerror', ({ message }) => console.log(message))
-  .on('response', response =>
-    console.log(`${response.status()} ${response.url()}`))
-  .on('requestfailed', request =>
-    console.log(`${request.failure().errorText} ${request.url()}`))
+  await page.setRequestInterception(true);
+
+  console.log("Registering page hooks")
+  setupPageHooks(page)
 
   console.log("Setting viewport")
   await page.setViewport({ width: 512, height: 348 });
@@ -37,21 +47,25 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
   console.log("Loading page and waiting for all assets")
 
   // goto and wait until all assets are loaded
-  await page.goto(levelUrl, { waitUntil: "networkidle0" });
+  await page.goto(levelUrl, { waitUntil: "networkidle0" })
 
   console.log("Waiting for the click to begin selector...")
 
   // will be better to page.waitForSelector before doing anything else
   await page.waitForSelector(clickToBeginSelector);
-  const clickToBeginCTA = await page.$(clickToBeginSelector);
+
+  const elapsedPageLoadTimeMs = Date.now() - startTime;
+  console.log(`Page took ${elapsedPageLoadTimeMs}ms to load`)
+
+  const clickToBeginCTA = await page.$(clickToBeginSelector)
 
   console.log("Issuing click to start")
 
   await clickToBeginCTA?.click();
 
-  // Wait 250ms
-  console.log("Waiting 250ms")
-  await new Promise(f => setTimeout(f, 250))
+  const wait = 3000
+  console.log(`Waiting ${wait}ms`)
+  await new Promise(f => setTimeout(f, wait))
   console.log("Continuing...")
 
   // init page recorder with page
@@ -69,19 +83,18 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
 
   // const fnResult = await page.waitForFunction('window.world.level.completed')
   try {
-    // Adjust our timeout based on the expected time we take given the fps we use
+    // Adjust our expectations based target faster-than-realtime tickRate
     // 30 seconds is the normal amount of time we want to timeout w/
     // 30 hz is the normal game tick rate
     // thus, the adjusted time (in ms) is 30 sec * defaultTickRate / tickRate * 1000 ms/sec
-    const expectedTimeoutMs = 30.0 * (defaultTickRate / tickRate) * 1000.0
+    const expectedGameProcessingTimeMs = 30.0 * (defaultTickRate / tickRate) * 1000.0
 
-    // We will allow 5% extra time to account for anomalies
-    const paddedTimeoutMs = expectedTimeoutMs * 5
+    // We will allow 10% extra time to account for anomalies
+    const paddedGameProcessingTimeMs = expectedGameProcessingTimeMs * 1.1
 
-    console.log(`Note: We will wait ${paddedTimeoutMs} ms (adjusted from 30000 due to tickrate: ${tickRate})`)
+    console.log(`Note: We expect to wait ${paddedGameProcessingTimeMs}ms with a tick rate of ${tickRate} (default: ${defaultTickRate})`)
 
-    // await page.waitForFunction('document.getElementById("completion-time").value != ""');
-    await page.waitForFunction('document.getElementById("completion-time").innerText.length > 0')
+    await page.waitForFunction('document.getElementById("completion-time").innerText.length > 0', { timeout: paddedGameProcessingTimeMs })
 
     const elapsedRunTimeMs = Date.now() - runStartTime
     console.log(`Had to wait ${elapsedRunTimeMs}ms`)
@@ -96,7 +109,7 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
 
   // To avoid chopping the end of the video prematurely, we will stop the video 1 second later, adjusted
   // for our tick rate time scaling
-  const tailWaitTimeMs = 1 * (defaultTickRate / tickRate) * 1000.0
+  const tailWaitTimeMs = 2.5 * (defaultTickRate / tickRate) * 1000.0
   console.log(`Waiting ${tailWaitTimeMs}ms`)
   await new Promise(f => setTimeout(f, tailWaitTimeMs))
   console.log("Continuing...")
@@ -114,20 +127,12 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
   console.log("Grabbing score...")
 
   const T = await page.evaluate(
-    "parseFloat(world.level.ui.completionTime.innerText)"
+    'parseFloat(document.getElementById("completion-time").innerText)'
   );
 
   console.log("Grabbing level name...")
 
   const level = await page.evaluate("world.level.name");
-
-  // console.log(expression, T);
-
-  /*
-  await page.screenshot({
-    path: "finalGame.png"
-  })
-  */
 
   console.log("Closing browser...")
 
@@ -145,6 +150,66 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
     level: level,
     gameplay: gamplayVideoUri
   };
+
+  function setupPageHooks(page : Page) {
+    page.on('request', async (request) => {
+      const url = request.url();
+
+      if (url.endsWith(".mp3") && cache["fakemp3"]) {
+        await request.respond(cache["fakemp3"])
+        return;
+      }
+
+      if (cache[url] /*&& cache[url].expires > Date.now()*/) {
+        console.log("using cache for url: " + url)
+        await request.respond(cache[url]);
+        return;
+      }
+      request.continue();
+    });
+
+    page.on('response', async (response) => {
+      const url = response.url();
+      const headers = response.headers();
+      const cacheControl = headers['cache-control'] || '';
+      const maxAgeMatch = cacheControl.match(/max-age=(\d+)/);
+      const maxAge = maxAgeMatch && maxAgeMatch.length > 1 ? parseInt(maxAgeMatch[1], 10) : 0;
+      if (true || maxAge) { // NOTE - forcing caching
+        if (cache[url] /*|| cache[url].expires > Date.now()*/) return;
+
+        let buffer;
+        try {
+          buffer = await response.buffer();
+        } catch (error) {
+          // some responses do not contain buffer and do not need to be catched
+          return;
+        }
+
+        console.log("caching url: " + url)
+        const resp = {
+          status: response.status(),
+          headers: response.headers(),
+          body: buffer,
+          expires: Date.now() + (maxAge * 1000),
+        };
+        cache[url] = resp
+
+        if (url.endsWith(".mp3") && !cache["fakemp3"]) {
+          cache["fakemp3"] = resp
+        }
+      }
+    });
+
+    page
+      .on('console', message =>
+        console.log(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
+      .on('pageerror', ({ message }) => console.log(message))
+      .on('response', response =>
+        console.log(`${response.status()} ${response.url()}`))
+      .on('requestfailed', request =>
+        console.log(`${request.failure().errorText} ${request.url()}`))
+
+  }
 };
 
 // ignores whitespace in expression

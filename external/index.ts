@@ -29,8 +29,8 @@ export default class PuppeteerVideoRecorder {
   start(options = {
     maxWidth: 512,
     maxHeight: 348,
-    quality: 70,
-    everyNthFrame: 1
+    quality: 60,
+    everyNthFrame: 2
   }) {
     return this.screenshots.start(options);
   }
@@ -49,7 +49,7 @@ export default class PuppeteerVideoRecorder {
       '-f concat',
       '-safe 0',
       `-i ${imagesFilename}`,
-      '-framerate 15',
+      '-framerate 25',
       '-hide_banner',
       videoFilename
     ].join(' ');
