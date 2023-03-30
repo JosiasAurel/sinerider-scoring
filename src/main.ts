@@ -33,7 +33,7 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
   setupPageHooks(page)
 
   console.log("Setting viewport")
-  await page.setViewport({ width: 1, height: 1 });
+  await page.setViewport({ width: 512, height: 348 });
 
   // selectors
   const clickToBeginSelector = "#loading-string"; // will have to wait until page is fully loaded before clicking
@@ -49,9 +49,6 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
   // will be better to page.waitForSelector before doing anything else
   await page.waitForSelector(clickToBeginSelector);
   const clickToBeginCTA = await page.$(clickToBeginSelector);
-
-  console.log("Increasing viewport size")
-  await page.setViewport({ width: 512, height: 348 });
 
   console.log("Issuing click to start")
 
@@ -149,6 +146,12 @@ export const playLevel = async (rawLevelUrl: string, videoName: string, folder: 
   function setupPageHooks(page : Page) {
     page.on('request', async (request) => {
       const url = request.url();
+
+      if (url.endsWith(".mp3")) {
+        request.failure();
+        return;
+      }
+
       if (cache[url] /*&& cache[url].expires > Date.now()*/) {
         console.log("using cache for url: " + url)
         await request.respond(cache[url]);
