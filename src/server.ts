@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { getScoresByLevel, saveSolution, getAllScores, saveLevel, getUnplayedLevel } from "./airtable.js";
-import { playLevel, getCharCount, generateLevel } from "./main.js";
+import { playLevel, generateLevel, ScoringResult } from "./main.js";
 import { nanoid } from "nanoid";
 import { uploadVideo } from "./video.js";
 import { accessSync, constants, rmSync, watchFile } from "fs";
@@ -10,6 +10,9 @@ import fs from 'fs'
 import path from 'path'
 import os from 'os'
 import {v4 as uuidv4} from 'uuid';
+import PQueue from 'p-queue';
+import { TimeoutError } from "puppeteer";
+import { SINERIDER_URL_PREFIX } from "./config.js";
 
 const app = express();
 
@@ -38,13 +41,41 @@ app.get("/all", (req, res) => {
     .catch((err) => res.json({ success: false, reason: err }));
 });
 
-// will return either a { success: true, id: <ID_OF_RECORD> } if successfully saved
-// or { success: false } if failed
-app.post("/score", async (req, res) => {
-  console.log("Starting scoring...")
-  // level is a url to the body to the game from the user
-  const { level } = req.body;
+// Process scoring jobs one at a time.
+const queue = new PQueue({ concurrency: 1 });
+async function addScoringJob(level: string) {
+  return await new Promise<ScoringResult>(async (resolve, reject) => {
+    return await queue.add(async () => {
+      try {
+        resolve(await score(level));
+      } catch (e) {
+        reject(e);
+      }
+    });
+  });  
+}
 
+app.post("/score", async (req, res) => {
+  try {
+    const level = req.body.level;
+
+    if (!level.startsWith(SINERIDER_URL_PREFIX)) {
+      res.status(400).json({message:`Invalid level URL (must start with ${SINERIDER_URL_PREFIX})`})
+      return
+    }
+
+    const result = await addScoringJob(level);
+    res.status(200).json(result);  
+  } catch (e) {
+    if (e instanceof TimeoutError) {
+      res.status(408).json({message:"Failed scoring due to timeout"})
+    } else {
+      res.status(500).json({message:"Internal server error"})
+    }
+  }
+});
+
+async function score(level:string) {
   let videoName: string = makeVideoName();
   function makeVideoName(): string {
     let name = `${nanoid(8)}.webm`;
@@ -52,28 +83,29 @@ app.post("/score", async (req, res) => {
     return name;
   }
 
-  let solution: Solution;
   console.log("Starting playLevel...")
   
   const tempDir = os.tmpdir()
   const uuid = uuidv4()
   const fullDir = tempDir.endsWith("/") ? tempDir + uuid : tempDir + "/" + uuid
   console.log(`Making directory: ${fullDir}`)
-  fs.mkdtemp(fullDir, (err, folder) => {
-    if (err) throw err;
-    console.log(`Actual temp directory: ${folder}`)    
+  var results = null
 
-    playLevel(level, videoName, folder).then((result) => {
-      res.json(result);
-      //finishWork(videoName, res, solution);    
-    });
-    
-    // Clean up afterwards
-    console.log("Attempting to clean up folder: " + folder)
-    fs.rmSync(folder, { recursive: true, force: true });
+  const folder = await new Promise<string>((resolve, reject) => {
+    fs.mkdtemp(fullDir, async (err, f) => {
+      if (err) reject(err.message)
+      console.log(`Actual temp directory: ${f}`)
+      resolve(f)    
+    });  
   });
+  results = await playLevel(level, videoName, folder)
 
-});
+  // Clean up afterwards
+  console.log("Attempting to clean up folder: " + folder)
+  fs.rmSync(folder, { recursive: true, force: true });
+
+  return results
+}
 
 app.get("/daily", (_, res) => {
   getUnplayedLevel()
