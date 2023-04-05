@@ -16,9 +16,7 @@ import { SINERIDER_URL_PREFIX } from "./config.js";
 
 const app = express();
 
-// setup json
 app.use(express.json());
-// should fix cors issues
 app.use(cors());
 
 const port = process.env.PORT ?? 3000;
@@ -41,20 +39,6 @@ app.get("/all", (req, res) => {
     .catch((err) => res.json({ success: false, reason: err }));
 });
 
-// Process scoring jobs one at a time.
-const queue = new PQueue({ concurrency: 1 });
-async function addScoringJob(level: string) {
-  return await new Promise<ScoringResult>(async (resolve, reject) => {
-    return await queue.add(async () => {
-      try {
-        resolve(await score(level));
-      } catch (e) {
-        reject(e);
-      }
-    });
-  });  
-}
-
 app.post("/score", async (req, res) => {
   try {
     const level = req.body.level;
@@ -75,36 +59,39 @@ app.post("/score", async (req, res) => {
   }
 });
 
+// Process scoring jobs one at a time.
+const queue = new PQueue({ concurrency: 1 });
+async function addScoringJob(level: string) {
+  return await new Promise<ScoringResult>(async (resolve, reject) => {
+    return await queue.add(async () => {
+      try {
+        resolve(await score(level));
+      } catch (e) {
+        reject(e);
+      }
+    });
+  });  
+}
+
 async function score(level:string) {
   let videoName: string = makeVideoName();
-  function makeVideoName(): string {
-    let name = `${nanoid(8)}.webm`;
-    if (name.startsWith("-")) return makeVideoName();
-    return name;
-  }
 
   console.log("Starting playLevel...")
-  
-  const tempDir = os.tmpdir()
-  const uuid = uuidv4()
-  const fullDir = tempDir.endsWith("/") ? tempDir + uuid : tempDir + "/" + uuid
-  console.log(`Making directory: ${fullDir}`)
-  var results = null
-
   const folder = await new Promise<string>((resolve, reject) => {
-    fs.mkdtemp(fullDir, async (err, f) => {
+    fs.mkdtemp(os.tmpdir().endsWith("/") ? os.tmpdir() + uuidv4() : os.tmpdir() + "/" + uuidv4(), async (err, f) => {
       if (err) reject(err.message)
-      console.log(`Actual temp directory: ${f}`)
+      console.log(`Temp directory: ${f}`)
       resolve(f)    
     });  
   });
-  results = await playLevel(level, videoName, folder)
 
-  // Clean up afterwards
-  console.log("Attempting to clean up folder: " + folder)
-  fs.rmSync(folder, { recursive: true, force: true });
-
-  return results
+  try {
+    return await playLevel(level, videoName, folder)
+  } finally {
+    // Clean up afterwards
+    console.log("Cleaning up temp directory: " + folder)
+    fs.rmSync(folder, { recursive: true, force: true });
+  }
 }
 
 app.get("/daily", (_, res) => {
@@ -124,51 +111,8 @@ app.listen(port, () =>
   console.log(`Doing some black magic on port ${port}...`)
 );
 
-
-function finishWork(res: Response<any, Record<string, any>, number>, solution: Solution) {
-  const videoName = "PLEASE_FIX_ME";
-  uploadVideo(videoName)
-    .then((result) => (solution.gameplay = result?.uri ?? ""))
-    .then(() => {
-      saveSolution(solution)
-        .then((data: any) => // string ? { id: string }
-          res.json({ success: true, id: data.id, ...solution })
-        )
-        .then(() => {
-          // rmSync(videoName); // remove video after upload
-        })
-        .catch((err) => res.json({ success: false, reason: err }));
-    });
-  const fileExistCheck = setInterval(() => {
-    try {
-      accessSync(videoName, constants.F_OK);
-      watchFile(videoName, { bigint: false, persistent: true, interval: 1000 }, (curr, prev) => {
-        const diffSeconds = (curr.mtimeMs - prev.mtimeMs) / 1000;
-        if (diffSeconds >= 5) {
-
-        }
-      });
-
-      clearInterval(fileExistCheck);
-    } catch { }
-  }, 1000);
-
-  /*
-  setTimeout(() => {
-    try {
-      accessSync(videoName, constants.F_OK);
-      uploadVideo(videoName)
-        .then((result) => (solution.gameplay = result.uri))
-        .then(() => {
-          saveSolution(solution)
-            .then((data) =>
-              res.json({ success: true, id: data.id, ...solution })
-            )
-            .catch((err) => res.json({ success: false, reason: err }));
-        });
-
-      // clearInterval(fileExistCheck);
-    } catch { }
-  }, 10000);
-  */
+function makeVideoName(): string {
+  let name = `${nanoid(8)}.webm`;
+  if (name.startsWith("-")) return makeVideoName();
+  return name;
 }
