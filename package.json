@@ -27,6 +27,7 @@
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "nanoid": "^4.0.1",
+    "p-queue": "^7.3.4",
     "puppeteer": "^19.6.3",
     "puppeteer-mass-screenshots": "^1.0.15",
     "uuid": "^9.0.0"
