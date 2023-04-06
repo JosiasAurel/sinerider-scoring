@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { getScoresByLevel, saveSolution, getAllScores, saveLevel, getUnplayedLevel } from "./airtable.js";
-import { playLevel, generateLevel, ScoringResult } from "./main.js";
+import { playLevel, generateLevel, ScoringResult, ScoringTimeoutError } from "./main.js";
 import { nanoid } from "nanoid";
 import { uploadVideo } from "./video.js";
 import { accessSync, constants, rmSync, watchFile } from "fs";
@@ -40,23 +40,25 @@ app.get("/all", (req, res) => {
 });
 
 app.post("/score", async (req, res) => {
-  try {
-    const level = req.body.level;
+  const level = req.body.level;
 
-    if (!level.startsWith(SINERIDER_URL_PREFIX)) {
-      res.status(400).json({message:`Invalid level URL (must start with ${SINERIDER_URL_PREFIX})`})
-      return
-    }
+  if (!level.startsWith(SINERIDER_URL_PREFIX)) {
+    res.status(400).json({message:`Invalid level URL (must start with ${SINERIDER_URL_PREFIX})`})
+    return
+  }
 
-    const result = await addScoringJob(level);
+  addScoringJob(level).then(result => {
+    console.log("success")
     res.status(200).json(result);  
-  } catch (e) {
-    if (e instanceof TimeoutError) {
+  }).catch(e => {
+    if (e instanceof ScoringTimeoutError) {
+      console.log("timeout")
       res.status(408).json({message:"Failed scoring due to timeout"})
     } else {
+      console.log("error")
       res.status(500).json({message:"Internal server error"})
     }
-  }
+  })
 });
 
 // Process scoring jobs one at a time.
@@ -85,13 +87,7 @@ async function score(level:string) {
     });  
   });
 
-  try {
-    return await playLevel(level, videoName, folder)
-  } finally {
-    // Clean up afterwards
-    console.log("Cleaning up temp directory: " + folder)
-    fs.rmSync(folder, { recursive: true, force: true });
-  }
+  return await playLevel(level, videoName, folder);  
 }
 
 app.get("/daily", (_, res) => {
@@ -111,6 +107,15 @@ app.listen(port, () =>
   console.log(`Doing some black magic on port ${port}...`)
 );
 
+function cleanup(folder:string) {
+  try {
+    // Clean up afterwards
+    console.log("Cleaning up temp directory: " + folder)
+    fs.rmSync(folder, { recursive: true, force: true });
+  } catch (e) {
+    console.log("Failed to clean up temp directory")
+  }
+}
 function makeVideoName(): string {
   let name = `${nanoid(8)}.webm`;
   if (name.startsWith("-")) return makeVideoName();

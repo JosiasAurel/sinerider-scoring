@@ -17,6 +17,9 @@ export interface ScoringResult {
     gameplay: string
 }
 
+export class ScoringTimeoutError extends TimeoutError { 
+}
+
 // On top of your code
 let cache: { [url: string]: CacheEntry } = {};
 
@@ -92,7 +95,15 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
 
   console.log(`Note: maximum wait time ${paddedGameProcessingTimeMs}ms with a tick rate of ${tickRate} (default: ${defaultTickRate})`)
 
-  await page.waitForFunction('document.getElementById("completion-time").innerText.length > 0', { timeout: paddedGameProcessingTimeMs })
+  try {
+    await page.waitForFunction('document.getElementById("completion-time").innerText.length > 0', { timeout: paddedGameProcessingTimeMs })
+  } catch (e) {
+    if (e instanceof TimeoutError) {
+      // We do this because we want to differentiate this specific timeout error from others.
+      // This one means that we tried to score the problem but it exceeded the 30 second maximum, and thus was invalid
+      throw new ScoringTimeoutError();
+    }
+  }
 
   const elapsedRunTimeMs = Date.now() - runStartTime
   console.log(`actual wait time: ${elapsedRunTimeMs}ms`)
