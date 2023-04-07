@@ -39,7 +39,8 @@ export function saveSolution({
   charCount,
   playURL,
   gameplay,
-  player
+  player,
+  timestamp
 }: Solution) {
   return new Promise((resolve, reject) => {
     base("Leaderboard").create(
@@ -53,6 +54,7 @@ export function saveSolution({
             charCount,
             gameplay,
             player,
+            timestamp,
           },
         },
       ],
