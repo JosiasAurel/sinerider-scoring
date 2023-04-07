@@ -1,6 +1,5 @@
 import express from "express";
 import cors from "cors";
-import { saveSolution } from "./airtable.js";
 import { playLevel, ScoringTimeoutError } from "./main.js";
 import { nanoid } from "nanoid";
 import fs from 'fs'
@@ -32,7 +31,6 @@ app.post("/score", async (req, res) => {
   addScoringJob(level).then(result => {
     console.log("success")
     res.status(200).json(result);
-    saveSolution({ ...result, player: player ?? "", timestamp: new Date(new Date().toUTCString()).getTime() });
   }).catch(e => {
     if (e instanceof ScoringTimeoutError) {
       console.log("timeout")
