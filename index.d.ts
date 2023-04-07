@@ -5,8 +5,19 @@ declare interface Solution {
   level: string,
   charCount: number,
   playURL: string,
-  T: number
+  time: number,
+  id?: string,
+  timestamp: number;
 }
+
+declare interface CacheEntry {
+  status: number
+  headers: Record<string, string>,
+  body: Buffer,
+  expires: number
+}
+
+declare type ScoringResult = Solution;
 
 declare interface VideoDetails {
   uri: string,

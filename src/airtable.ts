@@ -36,7 +36,7 @@ export function getUnplayedLevel() {
 export function saveSolution({
   expression,
   level,
-  T,
+  time,
   charCount,
   playURL,
   gameplay,
@@ -48,7 +48,7 @@ export function saveSolution({
           fields: {
             expression,
             level,
-            T: parseFloat(T.toFixed(2)),
+            time: parseFloat(time.toFixed(2)),
             playURL: playURL.split("?")[1],
             charCount,
             gameplay,
@@ -74,7 +74,7 @@ export function getScoresByLevel(levelName: string) {
         view: "Grid view",
         sort: [
           { field: "charCount", direction: "asc" },
-          { field: "T", direction: "asc" },
+          { field: "time", direction: "asc" },
         ],
       })
       .eachPage(
@@ -84,17 +84,21 @@ export function getScoresByLevel(levelName: string) {
             // console.log(level);
             if (level === levelName) {
               const expression = record.get("expression");
-              const T = record.get("T");
+              const time = record.get("time");
               const playURL = record.get("playURL");
               const charCount = record.get("charCount");
               const gameplay = record.get("gameplay") ?? "";
+              const id = record.get("id") ?? "";
+              const timestamp = record.get("timestamp") ?? 0;
 
               scores.push({
                 expression,
-                T,
+                time,
                 playURL,
                 charCount,
                 gameplay,
+                id,
+                timestamp
               } as Solution);
             }
           });

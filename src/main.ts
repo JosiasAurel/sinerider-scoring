@@ -1,23 +1,8 @@
 import puppeteer, { Page, TimeoutError } from "puppeteer";
 import PuppeteerVideoRecorder from "../external/index.js";
 
-interface CacheEntry {
-  status: number
-  headers: Record<string, string>,
-  body: Buffer,
-  expires: number
-}
 
-export interface ScoringResult {
-    T: number,
-    expression: string,
-    charCount: number,
-    playURL: string,
-    level: string,
-    gameplay: string
-}
-
-export class ScoringTimeoutError extends TimeoutError { 
+export class ScoringTimeoutError extends TimeoutError {
 }
 
 // On top of your code
@@ -56,7 +41,7 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
 
 
   console.log("Loading page and waiting for all assets")
-  await page.goto(levelUrl, { waitUntil: "networkidle0", timeout:60000 })
+  await page.goto(levelUrl, { waitUntil: "networkidle0", timeout: 60000 })
 
   console.log("Waiting for the click to begin selector...")
   const clickToBeginSelector = "#loading-string";
@@ -118,7 +103,7 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
   // Grab all relevant data from the browser & recorder before stopping them both
   const gamplayVideoUri = await recorder.stop() as string;
   const expression = await page.evaluate("world.level.ui.mathField.getPlainExpression()") as string;
-  const T = await page.evaluate('parseFloat(document.getElementById("completion-time").innerText)') as number;
+  const time = await page.evaluate('parseFloat(document.getElementById("completion-time").innerText)') as number;
   const level = await page.evaluate("world.level.name") as string;
   const cnt = getCharCount(expression as string) as number;
 
@@ -127,7 +112,7 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
 
   console.log("Total runtime: " + ((Date.now() - startTime) / 1000) + " seconds")
 
-  return { T: T, expression: expression, charCount: cnt, playURL: level, level: level, gameplay: gamplayVideoUri } as ScoringResult
+  return { time: time, expression: expression, charCount: cnt, playURL: level, level: level, gameplay: gamplayVideoUri } as ScoringResult
 }
 
 function setupPageHooks(page: Page) {
