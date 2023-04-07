@@ -41,7 +41,7 @@ app.get("/all", (req, res) => {
 });
 
 app.post("/score", async (req, res) => {
-  const level = req.body.level;
+  const { level, player } = req.body;
 
   if (!level.startsWith(SINERIDER_URL_PREFIX)) {
     res.status(400).json({ message: `Invalid level URL (must start with ${SINERIDER_URL_PREFIX})` })
@@ -51,6 +51,7 @@ app.post("/score", async (req, res) => {
   addScoringJob(level).then(result => {
     console.log("success")
     res.status(200).json(result);
+    saveSolution({ ...result, player: player ?? "" });
   }).catch(e => {
     if (e instanceof ScoringTimeoutError) {
       console.log("timeout")
