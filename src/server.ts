@@ -1,17 +1,12 @@
 import express from "express";
 import cors from "cors";
-import { getScoresByLevel, saveSolution, getAllScores, saveLevel, getUnplayedLevel } from "./airtable.js";
-import { playLevel, generateLevel, ScoringTimeoutError } from "./main.js";
+import { saveSolution } from "./airtable.js";
+import { playLevel, ScoringTimeoutError } from "./main.js";
 import { nanoid } from "nanoid";
-import { uploadVideo } from "./video.js";
-import { accessSync, constants, rmSync, watchFile } from "fs";
-import { Response } from "express-serve-static-core";
 import fs from 'fs'
-import path from 'path'
 import os from 'os'
 import { v4 as uuidv4 } from 'uuid';
 import PQueue from 'p-queue';
-import { TimeoutError } from "puppeteer";
 import { SINERIDER_URL_PREFIX, SINERIDER_SCORING_PRIVATE_SSL_KEY, SINERIDER_SCORING_PUBLIC_SSL_CERT } from "./config.js";
 import https from 'https'
 
@@ -24,20 +19,6 @@ const port = process.env.PORT ?? 3000;
 
 app.get("/", (req, res) => {
   res.send("SineRider is cool!");
-});
-
-app.get("/level/:name", (req, res) => {
-  const levelName = req.params.name;
-
-  getScoresByLevel(levelName)
-    .then((scores) => res.json({ success: true, scores }))
-    .catch((err) => res.json({ success: false, reason: err }));
-});
-
-app.get("/all", (req, res) => {
-  getAllScores()
-    .then((scores) => res.json({ success: true, scores }))
-    .catch((err) => res.json({ success: false, reason: err }));
 });
 
 app.post("/score", async (req, res) => {
@@ -91,19 +72,6 @@ async function score(level: string) {
 
   return await playLevel(level, videoName, folder);
 }
-
-app.get("/daily", (_, res) => {
-  getUnplayedLevel()
-    .then(level => res.json({ level, success: true }))
-    .catch((err) => res.json({ success: false }));
-});
-
-app.get("/generate", async (req, res) => {
-  const newLevel = await generateLevel();
-  saveLevel(newLevel)
-    .then(() => res.json({ success: true }))
-    .catch(() => res.json({ success: false }));
-});
 
 https
   .createServer({ key: SINERIDER_SCORING_PRIVATE_SSL_KEY, cert: SINERIDER_SCORING_PUBLIC_SSL_CERT }, app)
