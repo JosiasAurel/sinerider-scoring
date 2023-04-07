@@ -4,7 +4,7 @@ export function saveLevel(levelUri: string) {
   return new Promise((resolve, reject) => {
     base("Levels").create([{
       fields: {
-        URL: levelUri,
+        url: levelUri,
         played: false
       }
     }], (err, records) => {
@@ -23,10 +23,9 @@ export function getUnplayedLevel() {
       filterByFormula: "NOT({played})"
     }).eachPage((records, _) => {
       const randomLevel = records[Math.floor(Math.random() * records.length)];
-      console.log("gets here")
       base("Levels").update(randomLevel.getId(), {
         played: true
-      }).then(() => resolve(randomLevel.get("URL")))
+      }).then(() => resolve(randomLevel.get("url")))
         .catch(err => console.log(err));
 
     }, (err) => reject(err))
@@ -121,7 +120,7 @@ export function getAllScores() {
         view: "Grid view",
         sort: [
           { field: "charCount", direction: "asc" },
-          { field: "T", direction: "asc" },
+          { field: "time", direction: "asc" },
         ],
       })
       .eachPage(
@@ -130,16 +129,20 @@ export function getAllScores() {
             const level = record.get("level");
             // console.log(level);
             const expression = record.get("expression");
-            const T = record.get("T");
+            const time = record.get("time");
             const playURL = record.get("playURL");
             const charCount = record.get("charCount");
+            const id = record.get("id") ?? "";
+            const timestamp = record.get("timestamp") ?? 0;
 
             scores.push({
               expression,
-              T,
+              time,
               playURL,
               charCount,
               level,
+              timestamp,
+              id
             } as Solution);
           });
           nextPage();
