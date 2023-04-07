@@ -39,6 +39,7 @@ export function saveSolution({
   charCount,
   playURL,
   gameplay,
+  player
 }: Solution) {
   return new Promise((resolve, reject) => {
     base("Leaderboard").create(
@@ -51,6 +52,7 @@ export function saveSolution({
             playURL: playURL.split("?")[1],
             charCount,
             gameplay,
+            player,
           },
         },
       ],
@@ -87,7 +89,7 @@ export function getScoresByLevel(levelName: string) {
               const playURL = record.get("playURL");
               const charCount = record.get("charCount");
               const gameplay = record.get("gameplay") ?? "";
-              const id = record.get("id") ?? "";
+              const player = record.get("player") ?? "";
               const timestamp = record.get("timestamp") ?? 0;
 
               scores.push({
@@ -96,7 +98,7 @@ export function getScoresByLevel(levelName: string) {
                 playURL,
                 charCount,
                 gameplay,
-                id,
+                player,
                 timestamp
               } as Solution);
             }
@@ -132,7 +134,7 @@ export function getAllScores() {
             const time = record.get("time");
             const playURL = record.get("playURL");
             const charCount = record.get("charCount");
-            const id = record.get("id") ?? "";
+            const player = record.get("player") ?? "";
             const timestamp = record.get("timestamp") ?? 0;
 
             scores.push({
@@ -142,7 +144,7 @@ export function getAllScores() {
               charCount,
               level,
               timestamp,
-              id
+              player,
             } as Solution);
           });
           nextPage();
