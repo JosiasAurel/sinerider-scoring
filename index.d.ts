@@ -6,7 +6,6 @@ declare interface Solution {
   charCount: number,
   playURL: string,
   time: number,
-  player?: string,
   timestamp: number;
 }
 
