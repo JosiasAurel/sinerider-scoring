@@ -1,5 +1,6 @@
 import { config } from "dotenv";
 
+config()
 
 // cloudflare stuff
 export const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;

@@ -21,7 +21,7 @@ app.get("/", (req, res) => {
 });
 
 app.post("/score", async (req, res) => {
-  const { level, player } = req.body;
+  const { level } = req.body;
 
   if (!level.startsWith(SINERIDER_URL_PREFIX)) {
     res.status(400).json({ message: `Invalid level URL (must start with ${SINERIDER_URL_PREFIX})` })
