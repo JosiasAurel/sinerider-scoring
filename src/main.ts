@@ -50,25 +50,21 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
   
     console.log("Loading page and waiting for all assets")
     await page.goto(levelUrl, { waitUntil: "networkidle0", timeout: 60000 })
-    if (alertPoppedUp) throw new ScoringTimeoutError()
-
+  
     console.log("Waiting for the click to begin selector...")
     const clickToBeginSelector = "#loading-string";
     await page.waitForSelector(clickToBeginSelector);
-    if (alertPoppedUp) throw new ScoringTimeoutError()
-
+  
     const elapsedPageLoadTimeMs = Date.now() - startTime;
     console.log(`Page took ${elapsedPageLoadTimeMs}ms to load`)
   
     if (alertPoppedUp) throw new ScoringTimeoutError()
 
     const clickToBeginCTA = await page.$(clickToBeginSelector)
-    if (alertPoppedUp) throw new ScoringTimeoutError()
-
+  
     console.log("Issuing click to start")
     await clickToBeginCTA?.click();
-    if (alertPoppedUp) throw new ScoringTimeoutError()
-
+  
     const wait = 3000
     console.log(`Waiting ${wait}ms`)
     await new Promise(f => setTimeout(f, wait))
