@@ -73,7 +73,7 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
     console.log("Init page recorder")
     const recorder = await new PuppeteerVideoRecorder(folder, page).init()
 
-    const expression = await page.evaluate("world.level.ui.mathField.getPlainExpression()") as string;
+    const expression = await page.evaluate("world.level.currentLatex") as string;
     const level = await page.evaluate("world.level.name") as string;
     const cnt = getCharCount(expression as string) as number;
 
