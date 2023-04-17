@@ -50,12 +50,10 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
 
     console.log("Loading page and waiting for all assets")
     await page.goto(levelUrl, { waitUntil: "networkidle0", timeout: 60000 })
-    if (alertPoppedUp) throw new ScoringTimeoutError()
 
     console.log("Waiting for the click to begin selector...")
     const clickToBeginSelector = "#loading-string";
     await page.waitForSelector(clickToBeginSelector);
-    if (alertPoppedUp) throw new ScoringTimeoutError()
 
     const elapsedPageLoadTimeMs = Date.now() - startTime;
     console.log(`Page took ${elapsedPageLoadTimeMs}ms to load`)
@@ -63,11 +61,9 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
     if (alertPoppedUp) throw new ScoringTimeoutError()
 
     const clickToBeginCTA = await page.$(clickToBeginSelector)
-    if (alertPoppedUp) throw new ScoringTimeoutError()
 
     console.log("Issuing click to start")
     await clickToBeginCTA?.click();
-    if (alertPoppedUp) throw new ScoringTimeoutError()
 
     const wait = 3000
     console.log(`Waiting ${wait}ms`)
@@ -125,6 +121,9 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
     const gamplayVideoUri = await recorder.stop() as string;
     console.log("Total runtime: " + ((Date.now() - startTime) / 1000) + " seconds")
     return { time: time, expression: expression, charCount: cnt, playURL: rawLevelUrl, level: level, gameplay: gamplayVideoUri } as ScoringResult
+  } catch (e) {
+    console.log("got exception: " + e)
+    throw e
   } finally {
     console.log("Closing browser...")
     await browser.close()
