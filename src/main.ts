@@ -45,7 +45,7 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
     setupPageHooks(page)
 
     console.log("Setting viewport")
-    await page.setViewport({ width: 512, height: 348 });
+    await page.setViewport({ width: 1024, height: 768 });
 
 
     console.log("Loading page and waiting for all assets")
