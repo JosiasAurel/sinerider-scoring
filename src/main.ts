@@ -45,7 +45,7 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
     setupPageHooks(page)
 
     console.log("Setting viewport")
-    await page.setViewport({ width: 1024, height: 768 });
+    await page.setViewport({ width: 512, height: 348 });
 
 
     console.log("Loading page and waiting for all assets")
@@ -73,6 +73,10 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
     console.log("Init page recorder")
     const recorder = await new PuppeteerVideoRecorder(folder, page).init()
 
+    const expression = await page.evaluate("world.level.currentLatex") as string;
+    const level = await page.evaluate("world.level.name") as string;
+    const cnt = getCharCount(expression as string) as number;
+
     console.log("Starting recording...")
     await recorder.start();
 
@@ -86,7 +90,7 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
     const expectedGameProcessingTimeMs = 30.0 * (defaultTickRate / tickRate) * 1000.0
 
     // We will allow 10% extra time to account for anomalies
-    const paddedGameProcessingTimeMs = expectedGameProcessingTimeMs * 1.3
+    const paddedGameProcessingTimeMs = expectedGameProcessingTimeMs * 1.1
 
     console.log(`Note: maximum wait time ${paddedGameProcessingTimeMs}ms with a tick rate of ${tickRate} (default: ${defaultTickRate})`)
 
@@ -97,9 +101,7 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
         // It is very important to close the browser - always
         await browser.close()
 
-        // We do this because we want to differentiate this specific timeout error from others.
-        // This one means that we tried to score the problem but it exceeded the 30 second maximum, and thus was invalid
-        throw new ScoringTimeoutError();
+        return { time: Number.POSITIVE_INFINITY, expression: expression, charCount: cnt, playURL: rawLevelUrl, level: level, gameplay: "" } as ScoringResult
       }
     }
 
@@ -113,12 +115,10 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
     await new Promise(f => setTimeout(f, tailWaitTimeMs))
     console.log("Continuing...")
 
+    const time = await page.evaluate('parseFloat(document.getElementById("completion-time").innerText)') as number;
+
     // Grab all relevant data from the browser & recorder before stopping them both
     const gamplayVideoUri = await recorder.stop() as string;
-    const expression = await page.evaluate("world.level.ui.mathField.getPlainExpression()") as string;
-    const time = await page.evaluate('parseFloat(document.getElementById("completion-time").innerText)') as number;
-    const level = await page.evaluate("world.level.name") as string;
-    const cnt = getCharCount(expression as string) as number;
     console.log("Total runtime: " + ((Date.now() - startTime) / 1000) + " seconds")
     return { time: time, expression: expression, charCount: cnt, playURL: rawLevelUrl, level: level, gameplay: gamplayVideoUri } as ScoringResult
   } catch (e) {
