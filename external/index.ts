@@ -49,9 +49,10 @@ export default class PuppeteerVideoRecorder {
       '-f concat',
       '-safe 0',
       `-i ${imagesFilename}`,
-      '-framerate 25',
+      '-framerate 30',
       '-hide_banner',
-      videoFilename
+      '-profile:v high',
+      videoFilename,
     ].join(' ');
   }
 

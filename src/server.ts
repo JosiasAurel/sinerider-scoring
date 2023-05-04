@@ -82,7 +82,7 @@ function cleanup(folder: string) {
   }
 }
 function makeVideoName(): string {
-  let name = `${nanoid(8)}.webm`;
+  let name = `${nanoid(8)}.mp4`;
   if (name.startsWith("-")) return makeVideoName();
   return name;
 }
