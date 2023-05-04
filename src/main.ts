@@ -45,7 +45,7 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
     setupPageHooks(page)
 
     console.log("Setting viewport")
-    await page.setViewport({ width: 512, height: 348 });
+    await page.setViewport({ width: 1024, height: 768 });
 
 
     console.log("Loading page and waiting for all assets")
@@ -90,7 +90,7 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
     const expectedGameProcessingTimeMs = 30.0 * (defaultTickRate / tickRate) * 1000.0
 
     // We will allow 10% extra time to account for anomalies
-    const paddedGameProcessingTimeMs = expectedGameProcessingTimeMs * 1.1
+    const paddedGameProcessingTimeMs = expectedGameProcessingTimeMs * 1.3
 
     console.log(`Note: maximum wait time ${paddedGameProcessingTimeMs}ms with a tick rate of ${tickRate} (default: ${defaultTickRate})`)
 
