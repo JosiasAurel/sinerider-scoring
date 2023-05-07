@@ -120,7 +120,7 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
     if (time > 30) {
       return { time: Number.POSITIVE_INFINITY, expression: expression, charCount: cnt, playURL: rawLevelUrl, level: level, gameplay: "" } as ScoringResult
     }
-    
+
     // Grab all relevant data from the browser & recorder before stopping them both
     const gamplayVideoUri = await recorder.stop() as string;
     console.log("Total runtime: " + ((Date.now() - startTime) / 1000) + " seconds")
