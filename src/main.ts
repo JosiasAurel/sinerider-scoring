@@ -90,7 +90,7 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
     const expectedGameProcessingTimeMs = 30.0 * (defaultTickRate / tickRate) * 1000.0
 
     // We will allow 10% extra time to account for anomalies
-    const paddedGameProcessingTimeMs = expectedGameProcessingTimeMs * 2
+    const paddedGameProcessingTimeMs = expectedGameProcessingTimeMs * 3
 
     console.log(`Note: maximum wait time ${paddedGameProcessingTimeMs}ms with a tick rate of ${tickRate} (default: ${defaultTickRate})`)
 
