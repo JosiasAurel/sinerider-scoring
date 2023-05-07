@@ -6,7 +6,7 @@ import fs from 'fs'
 import os from 'os'
 import { v4 as uuidv4 } from 'uuid';
 import PQueue from 'p-queue';
-import { SINERIDER_URL_PREFIX, SINERIDER_DEV_URL_PREFIX, SINERIDER_SCORING_PRIVATE_SSL_KEY, SINERIDER_SCORING_PUBLIC_SSL_CERT } from "./config.js";
+import { SINERIDER_SCORING_PRIVATE_SSL_KEY, SINERIDER_SCORING_PUBLIC_SSL_CERT } from "./config.js";
 import https from 'https'
 
 const app = express();
@@ -22,11 +22,6 @@ app.get("/", (req, res) => {
 
 app.post("/score", async (req, res) => {
   const { level } = req.body;
-
-  if (!level.startsWith(SINERIDER_URL_PREFIX) && !level.startsWith(SINERIDER_DEV_URL_PREFIX)) {
-    res.status(400).json({ message: `Invalid level URL (must start with ${SINERIDER_URL_PREFIX}) or ${SINERIDER_DEV_URL_PREFIX}` })
-    return
-  }
 
   addScoringJob(level).then(result => {
     console.log("success")
