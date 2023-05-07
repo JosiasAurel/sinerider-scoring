@@ -27,8 +27,8 @@ export default class PuppeteerVideoRecorder {
   }
 
   start(options = {
-    maxWidth: 512,
-    maxHeight: 348,
+    maxWidth: 1024,
+    maxHeight: 768,
     quality: 60,
     everyNthFrame: 2
   }) {
