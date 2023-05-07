@@ -10,8 +10,8 @@ let cache: { [url: string]: CacheEntry } = {};
 
 export async function playLevel(rawLevelUrl: string, videoName: string, folder: string) {
   const startTime = Date.now()
-  const tickRate = 60 * 2
-  const drawModulo = 3
+  const tickRate = 60
+  const drawModulo = 6
   const defaultTickRate = 60
 
   const levelUrl = `${rawLevelUrl}&ticksPerSecond=${tickRate}&drawModulo=${drawModulo}`
@@ -199,44 +199,4 @@ export function getCharCount(expression: string): number {
   }
 
   return count;
-}
-
-export async function generateLevel() {
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  });
-  const page = await browser.newPage();
-
-  await page.setViewport({ width: 1280, height: 720 });
-
-  // selectors
-  const clickToBeginSelector = "#loading-string"; // will have to wait until page is fully loaded before clicking
-  const runButtonSelector = "#run-button";
-  // const victoryLabelSelector = '#victory-label'
-
-  const gameUrl = "https://sinerider.hackclub.dev/#random";
-
-  // goto and wait until all assets are loaded
-  await page.goto(gameUrl, { waitUntil: "networkidle0" });
-
-  // will be better to page.waitForSelector before doing anything else
-  await page.waitForSelector(clickToBeginSelector);
-  const clickToBeginCTA = await page.$(clickToBeginSelector);
-  await clickToBeginCTA?.click();
-
-  // wait for selector here, too
-  await page.waitForSelector(runButtonSelector);
-  const runButton = await page.$(runButtonSelector);
-  await runButton?.click();
-
-  // sleep for 3s
-  setTimeout(() => undefined, 3000);
-
-  const levelURl = await page.evaluate("location.href");
-
-  await browser.close();
-
-  return levelURl as string;
-
 }

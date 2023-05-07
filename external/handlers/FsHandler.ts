@@ -11,7 +11,7 @@ export default class FsHandler {
 
   constructor(outputFolder: string) {
     this.outputFolder = outputFolder;
-    this.videoFilename = join(this.outputFolder, Date.now() + '.webm');
+    this.videoFilename = join(this.outputFolder, Date.now() + '.mp4');
     this.imagesPath = join(this.outputFolder, 'images');
     this.imagesFilename = join(this.outputFolder, 'images.txt');
   }
