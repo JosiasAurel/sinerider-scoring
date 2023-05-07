@@ -10,7 +10,7 @@ let cache: { [url: string]: CacheEntry } = {};
 
 export async function playLevel(rawLevelUrl: string, videoName: string, folder: string) {
   const startTime = Date.now()
-  const tickRate = 60
+  const tickRate = 60*3
   const drawModulo = 6
   const defaultTickRate = 60
 
@@ -90,7 +90,7 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
     const expectedGameProcessingTimeMs = 30.0 * (defaultTickRate / tickRate) * 1000.0
 
     // We will allow 10% extra time to account for anomalies
-    const paddedGameProcessingTimeMs = expectedGameProcessingTimeMs * 1.3
+    const paddedGameProcessingTimeMs = expectedGameProcessingTimeMs * 2
 
     console.log(`Note: maximum wait time ${paddedGameProcessingTimeMs}ms with a tick rate of ${tickRate} (default: ${defaultTickRate})`)
 
@@ -117,6 +117,10 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
 
     const time = await page.evaluate('parseFloat(document.getElementById("completion-time").innerText)') as number;
 
+    if (time > 30) {
+      return { time: Number.POSITIVE_INFINITY, expression: expression, charCount: cnt, playURL: rawLevelUrl, level: level, gameplay: "" } as ScoringResult
+    }
+    
     // Grab all relevant data from the browser & recorder before stopping them both
     const gamplayVideoUri = await recorder.stop() as string;
     console.log("Total runtime: " + ((Date.now() - startTime) / 1000) + " seconds")
