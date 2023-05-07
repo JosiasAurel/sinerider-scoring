@@ -10,8 +10,8 @@ let cache: { [url: string]: CacheEntry } = {};
 
 export async function playLevel(rawLevelUrl: string, videoName: string, folder: string) {
   const startTime = Date.now()
-  const tickRate = 60*3
-  const drawModulo = 10
+  const tickRate = 60
+  const drawModulo = 6
   const defaultTickRate = 60
 
   const levelUrl = `${rawLevelUrl}&ticksPerSecond=${tickRate}&drawModulo=${drawModulo}`
