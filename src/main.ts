@@ -39,6 +39,15 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
       alertPoppedUp = true;
     })
 
+    page
+    .on('console', message =>
+      console.log(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
+    .on('pageerror', ({ message }) => console.log(message))
+    .on('response', response =>
+      console.log(`${response.status()} ${response.url()}`))
+    .on('requestfailed', request =>
+      console.log(`${request.failure().errorText} ${request.url()}`))
+
     console.log("Setting viewport")
     await page.setViewport({ width: 1024, height: 768 });
 
@@ -128,7 +137,6 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
     await browser.close()
   }
 }
-
 
 // ignores whitespace in expression
 // probably makes more sense to count sin, cos as units of their own
