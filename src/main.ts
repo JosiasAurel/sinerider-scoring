@@ -39,10 +39,14 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
       alertPoppedUp = true;
     })
 
-    await page.setRequestInterception(true);
-
-    console.log("Registering page hooks")
-    setupPageHooks(page)
+    page
+    .on('console', message =>
+      console.log(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
+    .on('pageerror', ({ message }) => console.log(message))
+    .on('response', response =>
+      console.log(`${response.status()} ${response.url()}`))
+    .on('requestfailed', request =>
+      console.log(`${request.failure().errorText} ${request.url()}`))
 
     console.log("Setting viewport")
     await page.setViewport({ width: 1024, height: 768 });
@@ -132,66 +136,6 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
     console.log("Closing browser...")
     await browser.close()
   }
-}
-
-function setupPageHooks(page: Page) {
-  page.on('request', async (request) => {
-    const url = request.url();
-
-    if (url.endsWith(".mp3") && cache["fakemp3"]) {
-      await request.respond(cache["fakemp3"])
-      return;
-    }
-
-    if (cache[url] /*&& cache[url].expires > Date.now()*/) {
-      console.log("using cache for url: " + url)
-      await request.respond(cache[url]);
-      return;
-    }
-    request.continue();
-  });
-
-  page.on('response', async (response) => {
-    const url = response.url();
-    const headers = response.headers();
-    const cacheControl = headers['cache-control'] || '';
-    const maxAgeMatch = cacheControl.match(/max-age=(\d+)/);
-    const maxAge = maxAgeMatch && maxAgeMatch.length > 1 ? parseInt(maxAgeMatch[1], 10) : 0;
-    if (true || maxAge) { // NOTE - forcing caching
-      if (cache[url] /*|| cache[url].expires > Date.now()*/) return;
-
-      let buffer;
-      try {
-        buffer = await response.buffer();
-      } catch (error) {
-        // some responses do not contain buffer and do not need to be catched
-        return;
-      }
-
-      console.log("caching url: " + url)
-      const resp = {
-        status: response.status(),
-        headers: response.headers(),
-        body: buffer,
-        expires: Date.now() + (maxAge * 1000),
-      };
-      cache[url] = resp
-
-      if (url.endsWith(".mp3") && !cache["fakemp3"]) {
-        cache["fakemp3"] = resp
-      }
-    }
-  });
-
-  page
-    .on('console', message =>
-      console.log(`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
-    .on('pageerror', ({ message }) => console.log(message))
-    .on('response', response =>
-      console.log(`${response.status()} ${response.url()}`))
-    .on('requestfailed', request =>
-      console.log(`${request.failure().errorText} ${request.url()}`))
-
 }
 
 // ignores whitespace in expression
