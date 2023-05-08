@@ -39,7 +39,7 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
       alertPoppedUp = true;
     })
 
-    await page.setRequestInterception(true);
+    //await page.setRequestInterception(true);
 
     console.log("Registering page hooks")
     setupPageHooks(page)
