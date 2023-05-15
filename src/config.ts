@@ -1,6 +1,8 @@
 import { config } from "dotenv";
 
-config()
+// Assume if this environment variable isn't set, we're not in production, and we should load our environment variables from .env
+if (!process.env.CLOUDINARY_CLOUD_NAME)
+    config()
 
 // cloudflare stuff
 export const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
