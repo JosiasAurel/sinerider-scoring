@@ -7,7 +7,7 @@ import os from 'os'
 import { v4 as uuidv4 } from 'uuid';
 import PQueue from 'p-queue';
 import { MAX_CONCURRENT_REQUESTS } from "./config.js";
-import http from 'https'
+import http from 'http'
 
 const app = express();
 
