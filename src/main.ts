@@ -1,5 +1,6 @@
 import puppeteer, { Page, TimeoutError } from "puppeteer";
 import PuppeteerVideoRecorder from "../external/index.js";
+import { BROWSERLESS_TOKEN } from "./config.js";
 
 
 export class ScoringTimeoutError extends TimeoutError {
@@ -18,15 +19,10 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
   console.log(`levelUrl: ${levelUrl}`)
 
   console.log("Launching puppeteer")
-  const browser = await puppeteer.launch({
-    headless: true,
-    ignoreDefaultArgs: [
-      "--mute-audio",
-    ],
-    args: [
-      "--no-sandbox", "--disable-setuid-sandbox", "--autoplay-policy=no-user-gesture-required",
-    ]
+  const browser = await puppeteer.connect({
+    browserWSEndpoint: `wss://chrome.browserless.io?token=${BROWSERLESS_TOKEN}`
   });
+
 
   try {
     console.log("Loading page...")
