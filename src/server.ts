@@ -6,7 +6,7 @@ import fs from 'fs'
 import os from 'os'
 import { v4 as uuidv4 } from 'uuid';
 import PQueue from 'p-queue';
-import { SINERIDER_SCORING_PRIVATE_SSL_KEY, SINERIDER_SCORING_PUBLIC_SSL_CERT } from "./config.js";
+import { SINERIDER_SCORING_PRIVATE_SSL_KEY, SINERIDER_SCORING_PUBLIC_SSL_CERT, MAX_CONCURRENT_REQUESTS } from "./config.js";
 import https from 'https'
 
 const app = express();
@@ -38,7 +38,7 @@ app.post("/score", async (req, res) => {
 });
 
 // Process scoring jobs one at a time.
-const queue = new PQueue({ concurrency: 1 });
+const queue = new PQueue({ concurrency: MAX_CONCURRENT_REQUESTS });
 async function addScoringJob(level: string) {
   return await new Promise<ScoringResult>(async (resolve, reject) => {
     return await queue.add(async () => {
@@ -66,11 +66,14 @@ async function score(level: string) {
   return await playLevel(level, videoName, folder);
 }
 
+/*
 https
   .createServer({ key: SINERIDER_SCORING_PRIVATE_SSL_KEY, cert: SINERIDER_SCORING_PUBLIC_SSL_CERT }, app)
   .listen(port, () => {
     console.log(`Doing some black magic on port ${port}...`)
   });
+*/
+app.listen(port, () => console.log("Working on port ", port));
 
 function cleanup(folder: string) {
   try {
