@@ -6,8 +6,8 @@ import fs from 'fs'
 import os from 'os'
 import { v4 as uuidv4 } from 'uuid';
 import PQueue from 'p-queue';
-import { SINERIDER_SCORING_PRIVATE_SSL_KEY, SINERIDER_SCORING_PUBLIC_SSL_CERT, MAX_CONCURRENT_REQUESTS } from "./config.js";
-import https from 'https'
+import { MAX_CONCURRENT_REQUESTS } from "./config.js";
+import http from 'https'
 
 const app = express();
 
@@ -66,8 +66,8 @@ async function score(level: string) {
   return await playLevel(level, videoName, folder);
 }
 
-https
-  .createServer({ key: SINERIDER_SCORING_PRIVATE_SSL_KEY, cert: SINERIDER_SCORING_PUBLIC_SSL_CERT }, app)
+http
+  .createServer(app)
   .listen(port, () => {
     console.log(`Doing some black magic on port ${port}...`)
   });
