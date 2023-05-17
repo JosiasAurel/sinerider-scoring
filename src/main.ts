@@ -20,7 +20,7 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
 
   console.log("Launching puppeteer")
   const browser = await puppeteer.connect({
-    browserWSEndpoint: `wss://chrome.browserless.io?=${BROWSERLESS_TOKEN}`
+    browserWSEndpoint: `wss://chrome.browserless.io?token=${BROWSERLESS_TOKEN}`
   });
 
 

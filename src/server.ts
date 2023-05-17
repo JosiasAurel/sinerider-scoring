@@ -66,14 +66,11 @@ async function score(level: string) {
   return await playLevel(level, videoName, folder);
 }
 
-/*
 https
   .createServer({ key: SINERIDER_SCORING_PRIVATE_SSL_KEY, cert: SINERIDER_SCORING_PUBLIC_SSL_CERT }, app)
   .listen(port, () => {
     console.log(`Doing some black magic on port ${port}...`)
   });
-*/
-app.listen(port, () => console.log("Working on port ", port));
 
 function cleanup(folder: string) {
   try {
