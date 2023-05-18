@@ -1,0 +1,3 @@
+NOTE - if building on Apple silicon, it's important to build the docker thusly (targetting both x86_64 + arm64):
+
+docker buildx build --platform linux/amd64,linux/arm64 --push -t registry.digitalocean.com/hackclub/sinerider-scoring .
