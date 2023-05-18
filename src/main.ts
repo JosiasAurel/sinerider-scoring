@@ -49,7 +49,7 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
 
 
     console.log("Loading page and waiting for all assets")
-    await page.goto(levelUrl, { waitUntil: "networkidle0", timeout: 60000 })
+    await page.goto(levelUrl, { waitUntil: "networkidle0", timeout: 30000 })
 
     console.log("Waiting for the click to begin selector...")
     const clickToBeginSelector = "#loading-string";
@@ -117,7 +117,7 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
 
     // To avoid chopping the end of the video prematurely, we will stop the video 1 second later, adjusted
     // for our tick rate time scaling
-    const tailWaitTimeMs = 2.5 * (defaultTickRate / tickRate) * 1000.0
+    const tailWaitTimeMs = 3 * (defaultTickRate / tickRate) * 1000.0
     console.log(`Waiting ${tailWaitTimeMs}ms`)
     await new Promise(f => setTimeout(f, tailWaitTimeMs))
     console.log("Continuing...")
