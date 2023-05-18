@@ -19,7 +19,7 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
   console.log(`levelUrl: ${levelUrl}`)
 
   console.log("Launching puppeteer")
-  const browser = await puppeteer.connect({
+  let browser: puppeteer.Browser | null = await puppeteer.connect({
     browserWSEndpoint: `wss://chrome.browserless.io?token=${BROWSERLESS_TOKEN}`
   });
 
@@ -89,8 +89,8 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
     // thus, the adjusted time (in ms) is 30 sec * defaultTickRate / tickRate * 1000 ms/sec
     const expectedGameProcessingTimeMs = 30.0 * (defaultTickRate / tickRate) * 1000.0
 
-    // We will allow 25% extra time to account for anomalies
-    const paddedGameProcessingTimeMs = expectedGameProcessingTimeMs * 1.25
+    // We will allow 2x extra time because browserless.io isn't always fast enough...
+    const paddedGameProcessingTimeMs = expectedGameProcessingTimeMs * 2.0
 
     console.log(`Note: maximum wait time ${paddedGameProcessingTimeMs}ms with a tick rate of ${tickRate} (default: ${defaultTickRate})`)
 
@@ -101,7 +101,10 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
         console.log("Got timeout error!")
 
         // It is very important to close the browser - always
-        await browser.close()
+        if (browser != null) {
+          await browser.close()
+          browser = null
+        }
 
         console.log("Browser closed (timeout)!")
 
@@ -135,7 +138,9 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
     throw e
   } finally {
     console.log("Closing browser (final)...")
-    await browser.close()
+    if (browser != null) {
+      await browser.close()
+    }
     console.log("Browser closed!")
   }
 }
