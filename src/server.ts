@@ -23,7 +23,9 @@ app.get("/", (req, res) => {
 app.post("/score", async (req, res) => {
   const { level } = req.body;
 
-  addScoringJob(level).then(result => {
+  console.log("/score begin")
+
+  score(level).then(result => {
     console.log("success")
     res.status(200).json(result);
   }).catch(e => {
@@ -35,6 +37,7 @@ app.post("/score", async (req, res) => {
       res.status(500).json({ message: "Internal server error" })
     }
   })
+  console.log("/score complete")
 });
 
 // Process scoring jobs one at a time.
