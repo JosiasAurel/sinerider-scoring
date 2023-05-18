@@ -29,7 +29,7 @@ export default class PuppeteerVideoRecorder {
   start(options = {
     maxWidth: 1024,
     maxHeight: 768,
-    quality: 100,
+    quality: 85,
     everyNthFrame: 1
   }) {
     return this.screenshots.start(options);
