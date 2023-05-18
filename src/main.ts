@@ -19,7 +19,7 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
   console.log(`levelUrl: ${levelUrl}`)
 
   console.log("Launching puppeteer")
-  const browser = await puppeteer.connect({
+  let browser: puppeteer.Browser | null = await puppeteer.connect({
     browserWSEndpoint: `wss://chrome.browserless.io?token=${BROWSERLESS_TOKEN}`
   });
 
@@ -101,7 +101,10 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
         console.log("Got timeout error!")
 
         // It is very important to close the browser - always
-        await browser.close()
+        if (browser != null) {
+          await browser.close()
+          browser = null
+        }
 
         console.log("Browser closed (timeout)!")
 
@@ -135,7 +138,9 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
     throw e
   } finally {
     console.log("Closing browser (final)...")
-    await browser.close()
+    if (browser != null) {
+      await browser.close()
+    }
     console.log("Browser closed!")
   }
 }
