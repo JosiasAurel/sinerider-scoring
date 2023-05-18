@@ -98,8 +98,12 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
       await page.waitForFunction('document.getElementById("completion-time").innerText.length > 0', { timeout: paddedGameProcessingTimeMs })
     } catch (e) {
       if (e instanceof TimeoutError) {
+        console.log("Got timeout error!")
+
         // It is very important to close the browser - always
         await browser.close()
+
+        console.log("Browser closed (timeout)!")
 
         return { time: Number.POSITIVE_INFINITY, expression: expression, charCount: cnt, playURL: rawLevelUrl, level: level, gameplay: "" } as ScoringResult
       } else console.log("Error: ", e);
@@ -118,6 +122,7 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
     const time = await page.evaluate('parseFloat(document.getElementById("completion-time").innerText)') as number;
 
     if (time > 30) {
+      console.log("Calculated time was greater than 30s!")
       return { time: Number.POSITIVE_INFINITY, expression: expression, charCount: cnt, playURL: rawLevelUrl, level: level, gameplay: "" } as ScoringResult
     }
 
@@ -129,8 +134,9 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
     console.log("got exception: " + e)
     throw e
   } finally {
-    console.log("Closing browser...")
+    console.log("Closing browser (final)...")
     await browser.close()
+    console.log("Browser closed!")
   }
 }
 
