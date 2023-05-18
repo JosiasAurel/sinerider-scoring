@@ -89,8 +89,8 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
     // thus, the adjusted time (in ms) is 30 sec * defaultTickRate / tickRate * 1000 ms/sec
     const expectedGameProcessingTimeMs = 30.0 * (defaultTickRate / tickRate) * 1000.0
 
-    // We will allow 25% extra time to account for anomalies
-    const paddedGameProcessingTimeMs = expectedGameProcessingTimeMs * 1.25
+    // We will allow 2x extra time because browserless.io isn't always fast enough...
+    const paddedGameProcessingTimeMs = expectedGameProcessingTimeMs * 2.0
 
     console.log(`Note: maximum wait time ${paddedGameProcessingTimeMs}ms with a tick rate of ${tickRate} (default: ${defaultTickRate})`)
 
