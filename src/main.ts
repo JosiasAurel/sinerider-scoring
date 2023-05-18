@@ -102,7 +102,7 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
         await browser.close()
 
         return { time: Number.POSITIVE_INFINITY, expression: expression, charCount: cnt, playURL: rawLevelUrl, level: level, gameplay: "" } as ScoringResult
-      }
+      } else console.log("Error: ", e);
     }
 
     const elapsedRunTimeMs = Date.now() - runStartTime

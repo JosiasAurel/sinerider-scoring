@@ -31,7 +31,7 @@ app.post("/score", async (req, res) => {
       console.log("timeout")
       res.status(408).json({ message: "Failed scoring due to timeout" })
     } else {
-      console.log("error")
+      console.log("Error: ", e)
       res.status(500).json({ message: "Internal server error" })
     }
   })
