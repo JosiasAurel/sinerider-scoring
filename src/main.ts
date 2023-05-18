@@ -11,8 +11,8 @@ let cache: { [url: string]: CacheEntry } = {};
 
 export async function playLevel(rawLevelUrl: string, videoName: string, folder: string) {
   const startTime = Date.now()
-  const tickRate = 60
-  const drawModulo = 1
+  const tickRate = 120
+  const drawModulo = 3
   const defaultTickRate = 60
 
   const levelUrl = `${rawLevelUrl}&ticksPerSecond=${tickRate}&drawModulo=${drawModulo}`
@@ -89,8 +89,8 @@ export async function playLevel(rawLevelUrl: string, videoName: string, folder: 
     // thus, the adjusted time (in ms) is 30 sec * defaultTickRate / tickRate * 1000 ms/sec
     const expectedGameProcessingTimeMs = 30.0 * (defaultTickRate / tickRate) * 1000.0
 
-    // We will allow 10% extra time to account for anomalies
-    const paddedGameProcessingTimeMs = expectedGameProcessingTimeMs * 3
+    // We will allow 25% extra time to account for anomalies
+    const paddedGameProcessingTimeMs = expectedGameProcessingTimeMs * 1.25
 
     console.log(`Note: maximum wait time ${paddedGameProcessingTimeMs}ms with a tick rate of ${tickRate} (default: ${defaultTickRate})`)
 
