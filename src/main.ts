@@ -1,6 +1,7 @@
 import puppeteer, { Page, TimeoutError } from "puppeteer";
 import PuppeteerVideoRecorder from "../external/index.js";
 import { BROWSERLESS_TOKEN } from "./config.js";
+import { TICK_RATE, DRAW_MODULO } from "./config.js";
 
 
 export class ScoringTimeoutError extends TimeoutError {
@@ -11,8 +12,8 @@ let cache: { [url: string]: CacheEntry } = {};
 
 export async function playLevel(rawLevelUrl: string, videoName: string, folder: string) {
   const startTime = Date.now()
-  const tickRate = 120
-  const drawModulo = 3
+  const tickRate = TICK_RATE
+  const drawModulo = DRAW_MODULO
   const defaultTickRate = 60
 
   const levelUrl = `${rawLevelUrl}&ticksPerSecond=${tickRate}&drawModulo=${drawModulo}`
