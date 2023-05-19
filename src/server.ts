@@ -6,7 +6,7 @@ import fs from 'fs'
 import os from 'os'
 import { v4 as uuidv4 } from 'uuid';
 import PQueue from 'p-queue';
-import { MAX_CONCURRENT_REQUESTS } from "./config.js";
+import { RATE_LIMIT_MAX_REQUESTS, RATE_LIMIT_WINDOW_MS } from "./config.js";
 import http from 'http'
 import rateLimiter from "express-rate-limit"
 
@@ -22,8 +22,8 @@ app.get("/", (req, res) => {
 });
 
 let scoringRateLimiter = rateLimiter({
-  max: 2,
-  windowMs: 60000,
+  max: RATE_LIMIT_MAX_REQUESTS,
+  windowMs: RATE_LIMIT_WINDOW_MS,
   message: "You can't make any more requests at the moment. Try again later",
 });
 
