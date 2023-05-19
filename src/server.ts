@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import PQueue from 'p-queue';
 import { MAX_CONCURRENT_REQUESTS } from "./config.js";
 import http from 'http'
+import rateLimiter from "express-rate-limit"
 
 const app = express();
 
@@ -20,7 +21,13 @@ app.get("/", (req, res) => {
   res.send("SineRider is cool!");
 });
 
-app.post("/score", async (req, res) => {
+let scoringRateLimiter = rateLimiter({
+  max: 2,
+  windowMs: 60000,
+  message: "You can't make any more requests at the moment. Try again later",
+});
+
+app.post("/score", scoringRateLimiter, async (req, res) => {
   const { level } = req.body;
 
   console.log("/score begin")
@@ -39,20 +46,6 @@ app.post("/score", async (req, res) => {
   })
   console.log("/score complete")
 });
-
-// Process scoring jobs one at a time.
-const queue = new PQueue({ concurrency: MAX_CONCURRENT_REQUESTS });
-async function addScoringJob(level: string) {
-  return await new Promise<ScoringResult>(async (resolve, reject) => {
-    return await queue.add(async () => {
-      try {
-        resolve(await score(level));
-      } catch (e) {
-        reject(e);
-      }
-    });
-  });
-}
 
 async function score(level: string) {
   let videoName: string = makeVideoName();
