@@ -59,7 +59,7 @@ async function score(level: string) {
     });
   });
 
-  return await playLevel(level, videoName, folder);
+  return await playLevel(level, folder);
 }
 
 http

@@ -25,5 +25,16 @@ declare interface VideoDetails {
   publicId: string,
 }
 
+declare interface BrowserContext {
+  browser:Browser
+  page:Page
+  beginButton:ElementHandle
+  tickRate:number
+  rawLevelUrl:string
+  expression:string,
+  cnt:number,
+  level:string,
+  folder:string
+}
 declare module 'puppeteer-video-recorder'
 declare module 'puppeteer-mass-screenshots'
