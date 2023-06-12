@@ -35,11 +35,11 @@ export default class PuppeteerVideoRecorder {
     return this.screenshots.start(options);
   }
 
-  async stop() {
+  async stop() : Promise<string> {
     await this.screenshots.stop();
     let gameplayVideoUri = await this.createVideo(this.fsHandler.getVideoFileName());
     console.log(`Gameplay video uri: ${gameplayVideoUri}`);
-    return gameplayVideoUri;
+    return gameplayVideoUri as string;
   }
 
   get defaultFFMpegCommand() {
