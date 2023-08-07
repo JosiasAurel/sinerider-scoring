@@ -149,6 +149,7 @@ async function executeGame(cxt: BrowserContext, shouldRecord:boolean = false) {
   catch (e) {
     metrics.increment("game.execute.error", 1);
     if (e instanceof TimeoutError) {
+      metrics.increment("game.execute.timeout", 1);
       return { time: Number.POSITIVE_INFINITY, expression: cxt.expression, charCount: cxt.cnt, playURL: cxt.rawLevelUrl, level: cxt.level, gameplay: "" } as ScoringResult      
     }
     throw e
