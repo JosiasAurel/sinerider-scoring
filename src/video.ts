@@ -4,6 +4,8 @@ import {
   CLOUDINARY_API_KEY,
   CLOUDINARY_API_SECRET,
 } from "./config.js";
+import metrics from "./metrics.js";
+
 const cloudinary = _cloudinary.v2;
 
 // Configuration
@@ -15,10 +17,14 @@ cloudinary.config({
 
 export async function uploadVideo(filename: string) {
   try {
+    const startTimeMs = Date.now()
     const uploadRes = await cloudinary.uploader.upload(`${filename}`, {
       resource_type: "auto",
     });
+    const elapsedTimeMs = startTimeMs - Date.now();
 
+    metrics.timing("cloudinary.upload.time", elapsedTimeMs);
+    metrics.increment("cloudinary.upload.success", 1);
     return {
       uri: uploadRes.secure_url,
       bytes: uploadRes.bytes,
@@ -26,6 +32,7 @@ export async function uploadVideo(filename: string) {
       publicId: uploadRes.public_id,
     };
   } catch (err) {
+    metrics.increment("cloudinary.upload.failure", 1);
     console.log(err);
   }
 }

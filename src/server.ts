@@ -1,4 +1,5 @@
 import express from "express";
+import { Request, Response } from "express";
 import cors from "cors";
 import { playLevel, ScoringTimeoutError } from "./main.js";
 import { nanoid } from "nanoid";
@@ -9,11 +10,24 @@ import PQueue from 'p-queue';
 import { RATE_LIMIT_MAX_REQUESTS, RATE_LIMIT_WINDOW_MS } from "./config.js";
 import http from 'http'
 import rateLimiter from "express-rate-limit"
+import responseTime from "response-time";
+import metrics from "./metrics.js";
 
 const app = express();
 
 app.use(express.json());
 app.use(cors());
+
+app.use(responseTime(function (req: Request, res: Response, time) {
+  const stat = (req.method + '/' + req.url.split('/')[1]).toLowerCase()
+    .replace(/[:.]/g, '')
+    .replace(/\//g, '_')
+  const httpCode = res.statusCode
+  const timingStatKey = `http.response.${stat}`
+  const codeStatKey = `http.response.${stat}.${httpCode}`
+  metrics.timing(timingStatKey, time)
+  metrics.increment(codeStatKey, 1)
+}))
 
 const port = process.env.PORT ?? 3000;
 
