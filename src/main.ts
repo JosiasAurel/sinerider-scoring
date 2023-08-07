@@ -179,7 +179,8 @@ async function simulate(rawLevelUrl:string, tickRate:number, drawModulo:number, 
 
   try {
     const result = await executeGame(cxt, shouldRecord)
-    metrics.increment("game.simulate.success", 1);
+    metrics.timing(`game.${result.level}.simulate.success`, result.time);
+    metrics.increment(`game.${result.level}.simulate.success`, 1);
     return result;
   } catch (e) {
     metrics.increment("game.simulate.error", 1);
