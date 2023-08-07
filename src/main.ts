@@ -105,6 +105,7 @@ async function destroyGame(cxt: BrowserContext) {
     await cxt.browser.close()
     cxt.browser = null
   }  
+  metrics.increment("game.simulate.destroy", 1);
 }
 
 async function pauseMs(ms: number) {
@@ -149,7 +150,6 @@ async function executeGame(cxt: BrowserContext, shouldRecord:boolean = false) {
   catch (e) {
     metrics.increment("game.execute.error", 1);
     if (e instanceof TimeoutError) {
-      metrics.increment("game.execute.timeout", 1);
       return { time: Number.POSITIVE_INFINITY, expression: cxt.expression, charCount: cxt.cnt, playURL: cxt.rawLevelUrl, level: cxt.level, gameplay: "" } as ScoringResult      
     }
     throw e
@@ -179,8 +179,14 @@ async function simulate(rawLevelUrl:string, tickRate:number, drawModulo:number, 
 
   try {
     const result = await executeGame(cxt, shouldRecord)
-    metrics.timing(`game.${result.level}.simulate.success`, result.time);
     metrics.increment(`game.${result.level}.simulate.success`, 1);
+
+    if (result.time == Number.POSITIVE_INFINITY) {
+      metrics.increment(`game.${result.level}.simulate.timeout`, 1);
+    } else {
+      metrics.timing(`game.${result.level}.simulate.time`, result.time);
+    }
+
     return result;
   } catch (e) {
     metrics.increment("game.simulate.error", 1);
@@ -190,7 +196,6 @@ async function simulate(rawLevelUrl:string, tickRate:number, drawModulo:number, 
     throw e;
   } finally {
     await destroyGame(cxt)
-    metrics.increment("game.simulate.destroy", 1);
   }
 }
 
