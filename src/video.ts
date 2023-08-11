@@ -23,8 +23,8 @@ export async function uploadVideo(filename: string) {
     });
     const elapsedTimeMs = startTimeMs - Date.now();
 
-    metrics.timing(`cloudinary.upload.${filename}.time`, elapsedTimeMs);
-    metrics.increment(`cloudinary.upload.${filename}.success`, 1);
+    metrics.timing("cloudinary.upload.time", elapsedTimeMs);
+    metrics.increment("cloudinary.upload.success", 1);
     return {
       uri: uploadRes.secure_url,
       bytes: uploadRes.bytes,
@@ -32,7 +32,7 @@ export async function uploadVideo(filename: string) {
       publicId: uploadRes.public_id,
     };
   } catch (err) {
-    metrics.increment(`cloudinary.upload.${filename}.failure`, 1);
+    metrics.increment("cloudinary.upload.failure", 1);
     console.log(err);
   }
 }

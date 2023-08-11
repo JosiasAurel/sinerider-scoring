@@ -24,7 +24,7 @@ export async function playLevel(rawLevelUrl: string, folder: string) {
   const result = await simulate(rawLevelUrl, fastTickRate, fastDrawModulo, folder, false)
 
   console.log(`timing result: ${result.time}`)
-  metrics.timing(`game.${result.level}.simulate.time`, result.time * 1000);
+  metrics.timing("game.simulate.time", result.time * 1000);
 
   // If the time is over 30 seconds, we can just return the result immediately as no video is required.
   if (result.time > 30)
@@ -105,7 +105,7 @@ async function destroyGame(cxt: BrowserContext) {
     await cxt.browser.close()
     cxt.browser = null
   }  
-  metrics.increment(`game.${cxt.level}.simulate.destroy`, 1);
+  metrics.increment("game.simulate.destroy", 1);
 }
 
 async function pauseMs(ms: number) {
@@ -180,17 +180,17 @@ async function simulate(rawLevelUrl:string, tickRate:number, drawModulo:number, 
 
   try {
     const result = await executeGame(cxt, shouldRecord)
-    metrics.increment(`game.${result.level}.simulate.success`, 1);
+    metrics.increment("game.simulate.success", 1);
 
     if (result.time == Number.POSITIVE_INFINITY) {
-      metrics.increment(`game.${result.level}.simulate.timeout`, 1);
+      metrics.increment("game.simulate.timeout", 1);
     } else {
-      metrics.timing(`game.${result.level}.simulate.time`, result.time * 1000);
+      metrics.timing("game.simulate.time", result.time * 1000);
     }
 
     return result;
   } catch (e) {
-    metrics.increment(`game.${cxt.level}.simulate.error`, 1);
+    metrics.increment("game.simulate.error", 1);
     if (e instanceof TimeoutError) {
       return { time: Number.POSITIVE_INFINITY, expression: cxt.expression, charCount: cxt.cnt, playURL: rawLevelUrl, level: cxt.level, gameplay: "" } as ScoringResult
     }
